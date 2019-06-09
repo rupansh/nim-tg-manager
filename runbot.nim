@@ -1,3 +1,9 @@
+# Copyright (C) 2019 Rupansh Sekar
+#
+# Licensed under the Raphielscape Public License, Version 1.b (the "License");
+# you may not use this file except in compliance with the License.
+#
+
 import config
 import manage
 import restrict
