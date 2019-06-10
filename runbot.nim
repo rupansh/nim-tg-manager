@@ -7,6 +7,7 @@
 import config
 import information
 import manage
+import msgdel
 import restrict
 
 import telebot, asyncdispatch, logging, options
@@ -37,5 +38,9 @@ bot.onCommand("unmute", unmuteHandler)
 bot.onCommand("id", idHandler)
 bot.onCommand("info", infoHandler)
 bot.onCommand("ping", pingHandler)
+
+# msg deleting
+bot.onCommand("purge", purgeHandler)
+bot.onCommand("del", delHandler)
 
 bot.poll(timeout=500)

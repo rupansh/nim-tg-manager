@@ -22,6 +22,7 @@ canBotX(canBotPromote, canPromoteMembers)
 canBotX(canBotPin, canPinMessages)
 canBotX(canBotInvite, canInviteUsers)
 canBotX(canBotRestrict, canRestrictMembers)
+canBotX(canBotDelete, canDeleteMessages)
 
 proc isUserInChat*(b: TeleBot, chat_id: int, user_id: int): Future[bool] {.async.} =
     let user = await getChatMember(b, $chat_id, user_id)
