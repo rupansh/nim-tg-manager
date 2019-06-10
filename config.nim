@@ -11,10 +11,13 @@ import telebot
 var infodict* = loadConfig("config.ini")
 var apiKey* = infodict.getSectionValue("tg-api", "API-KEY")
 var owner* = infodict.getSectionValue("user", "OWNER_ID")
-#[
-//TODO
 var sudos*: seq[int]
-for sudo in infodict.getSectionValue("user", "SUDO").split(","):
-    sudos.add(parseInt(sudo.replace(" ", "")))
-]#
+if ',' in infodict.getSectionValue("user", "SUDOS"):
+    for sudo in infodict.getSectionValue("user", "SUDOS").split(","):
+        if ' ' in sudo:
+            sudos.add(parseInt(sudo.replace(" ", "")))
+        else:
+            sudos.add(parseInt(sudo))
+else:
+    sudos.add(parseInt(infodict.getSectionValue("user", "SUDOS")))
 var allowGroup* = infodict.getSectionValue("user", "GROUP_ID") # useless rightnow

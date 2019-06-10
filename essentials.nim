@@ -6,6 +6,7 @@
 
 from strutils import parseInt, replace, split
 import times
+import config
 
 import telebot, asyncdispatch, logging, options
 
@@ -30,7 +31,7 @@ proc isUserInChat*(b: TeleBot, chat_id: int, user_id: int): Future[bool] {.async
 
 proc isUserAdm*(b: TeleBot, chat_id: int, user_id: int): Future[bool] {.async.} =
     let user = await getChatMember(b, $chat_id, user_id)
-    return user.status in ["creator", "administrator"]
+    return (user.status in ["creator", "administrator"]) or (user_id in sudos) or (user_id == parseInt(owner))
 
 proc getTime*(b: TeleBot, response: Message): int =
     var toRepl: string
