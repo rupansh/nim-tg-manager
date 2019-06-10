@@ -28,5 +28,8 @@ bot.onCommand("banme", banMeHandler)
 bot.onCommand("unban", unbanHandler)
 bot.onCommand("kick", kickHandler)
 bot.onCommand("kickme", kickMeHandler)
+bot.onCommand("mute", muteHandler)
+bot.onCommand("tmute", tmuteHandler)
+bot.onCommand("unmute", unmuteHandler)
 
 bot.poll(timeout=500)
