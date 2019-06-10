@@ -5,6 +5,7 @@
 #
 
 import config
+import information
 import manage
 import restrict
 
@@ -31,5 +32,10 @@ bot.onCommand("kickme", kickMeHandler)
 bot.onCommand("mute", muteHandler)
 bot.onCommand("tmute", tmuteHandler)
 bot.onCommand("unmute", unmuteHandler)
+
+# information
+bot.onCommand("id", idHandler)
+bot.onCommand("info", infoHandler)
+bot.onCommand("ping", pingHandler)
 
 bot.poll(timeout=500)
