@@ -6,6 +6,8 @@
 
 import net
 import times
+import config
+from strutils import parseInt
 
 import telebot, asyncdispatch, logging, options
 
@@ -39,6 +41,12 @@ proc infoHandler*(b: TeleBot, c: Command) {.async.} =
         txt = "***Bot Info***\n\n"
     else:
         txt = "***User Info***\n\n"
+    if (await getChatMember(b, $response.chat.id, user.id)).status in ["creator", "administrator"]:
+        txt = txt & "***Admin***\n"
+    if user.id == parseInt(owner):
+        txt = txt & "***Bot_Owner***\n"
+    if user.id in sudos:
+        txt = txt & "***Sudo***\n"
     txt = txt & "ID:  " & $user.id & "\n"
     txt = txt & "First Name:  " & user.firstName & "\n"
     if user.lastName.isSome:
