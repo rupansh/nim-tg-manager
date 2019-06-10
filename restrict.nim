@@ -34,8 +34,7 @@ proc banHandler*(b: TeleBot, c: Command) {.async.} =
             discard await b.send(msg)
             return
 
-        let chatUser = await getChatMember(b, $response.chat.id.int, response.fromUser.get().id)
-        if chatUser.status in ["creator", "administrator"]:
+        if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             discard await kickChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, (toUnix(getTime()) - 31).int)
             var msg = newMessage(response.chat.id, "They won't be bugging you in this chat anymore!")
             msg.replyToMessageId = response.messageId
@@ -75,8 +74,7 @@ proc tbanHandler*(b: TeleBot, c: Command) {.async.} =
             discard await b.send(msg)
             return
 
-        let chatUser = await getChatMember(b, $response.chat.id.int, response.fromUser.get().id)
-        if chatUser.status in ["creator", "administrator"]:
+        if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             discard await kickChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, time)
             var msg = newMessage(response.chat.id, "They won't be bugging you in this chat for the next " & response.text.get.split(" ")[^1])
             msg.replyToMessageId = response.messageId
@@ -131,8 +129,7 @@ proc unbanHandler*(b: TeleBot, c: Command) {.async.} =
             discard await b.send(msg)
             return
 
-        let chatUser = await getChatMember(b, $response.chat.id.int, response.fromUser.get().id)
-        if chatUser.status in ["creator", "administrator"]:
+        if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             discard await unbanChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id)
             var msg = newMessage(response.chat.id, "Unbanned!")
             msg.replyToMessageId = response.messageId
@@ -168,8 +165,7 @@ proc kickHandler*(b: TeleBot, c: Command) {.async.} =
             discard await b.send(msg)
             return
 
-        let chatUser = await getChatMember(b, $response.chat.id.int, response.fromUser.get().id)
-        if chatUser.status in ["creator", "administrator"]:
+        if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             discard await kickChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, toUnix(getTime()).int + 1)
             var msg = newMessage(response.chat.id, "Kicked!")
             msg.replyToMessageId = response.messageId
@@ -224,8 +220,7 @@ proc muteHandler*(b: TeleBot, c: Command) {.async.} =
             discard await b.send(msg)
             return
 
-        let chatUser = await getChatMember(b, $response.chat.id.int, response.fromUser.get().id)
-        if chatUser.status in ["creator", "administrator"]:
+        if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             let user = await getChatMember(b, $response.chat.id.int, response.replyToMessage.get.fromUser.get().id)
             if user.canSendMessages.isNone or user.canSendMessages.get:
                 discard await restrictChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, canSendMessages = false)
@@ -267,8 +262,7 @@ proc tmuteHandler*(b: TeleBot, c: Command) {.async.} =
             discard await b.send(msg)
             return
 
-        let chatUser = await getChatMember(b, $response.chat.id.int, response.fromUser.get().id)
-        if chatUser.status in ["creator", "administrator"]:
+        if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             let user = await getChatMember(b, $response.chat.id.int, response.replyToMessage.get.fromUser.get().id)
             if user.canSendMessages.isNone or user.canSendMessages.get:
                 discard await restrictChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, untilDate = time, canSendMessages = false)
@@ -299,8 +293,7 @@ proc unmuteHandler*(b: TeleBot, c: Command) {.async.} =
             discard await b.send(msg)
             return
 
-        let chatUser = await getChatMember(b, $response.chat.id.int, response.fromUser.get().id)
-        if chatUser.status in ["creator", "administrator"]:
+        if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             let user = await getChatMember(b, $response.chat.id.int, response.replyToMessage.get.fromUser.get().id)
             if not(user.canSendMessages.isNone or user.canSendMessages.get):
                 discard await restrictChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, 

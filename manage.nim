@@ -20,8 +20,7 @@ proc promoteHandler*(b: TeleBot, c: Command) {.async.} =
         return
 
     if response.replyToMessage.isSome:
-        let chatUser = await getChatMember(b, $response.chat.id.int, response.fromUser.get().id)
-        if chatUser.status in ["creator", "administrator"]:
+        if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             discard await promoteChatMember(b, $response.chat.id.int, response.replyToMessage.get.fromUser.get().id, 
             canChangeInfo = botChat.canChangeInfo.get,
             canInviteUsers = botChat.canInviteUsers.get,
@@ -49,8 +48,7 @@ proc demoteHandler*(b: TeleBot, c: Command) {.async.} =
         return
 
     if response.replyToMessage.isSome:
-        let chatUser = await getChatMember(b, $response.chat.id.int, response.fromUser.get().id)
-        if chatUser.status in ["creator", "administrator"]:
+        if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             try:
                 discard await promoteChatMember(b, $response.chat.id.int, response.replyToMessage.get.fromUser.get().id,
                     canChangeInfo = false,
@@ -83,8 +81,7 @@ proc pinHandler*(b: TeleBot, c: Command) {.async.} =
         return
     
     if response.replyToMessage.isSome:
-        let chatUser = await getChatMember(b, $response.chat.id.int, response.fromUser.get().id)
-        if chatUser.status in ["creator", "administrator"]:
+        if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             discard await pinChatMessage(b, $response.chat.id.int, response.replyToMessage.get.messageId)
         else:
             var msg = newMessage(response.chat.id, "You aren't adm :^(")
@@ -104,8 +101,7 @@ proc unpinHandler*(b: TeleBot, c: Command) {.async.} =
         return
     
     if response.text.isSome:
-        let chatUser = await getChatMember(b, $response.chat.id.int, response.fromUser.get().id)
-        if chatUser.status in ["creator", "administrator"]:
+        if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             discard await unpinChatMessage(b, $response.chat.id.int)
         else:
             var msg = newMessage(response.chat.id, "You aren't adm :^(")
