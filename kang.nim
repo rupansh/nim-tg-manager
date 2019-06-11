@@ -34,11 +34,14 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
         else:
             title = fmt"{response.fromUser.get.firstName}'s kang pack"
 
+        var emojiBypass = false
         if ' ' in response.text.get:
             let emojiarr = response.text.get.split(" ")
             if emojiarr.len > 1:
                 emoji = emojiarr[^1]
-        elif response.replyToMessage.get.sticker.get.emoji.isSome:
+                emojiBypass = true
+
+        if (not emojiBypass) and response.replyToMessage.get.sticker.get.emoji.isSome:
             emoji = response.replyToMessage.get.sticker.get.emoji.get
 
         if response.replyToMessage.get.sticker.isSome:
