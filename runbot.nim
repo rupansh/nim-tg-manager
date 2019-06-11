@@ -43,6 +43,9 @@ bot.onCommand("ping", pingHandler)
 # msg deleting
 bot.onCommand("purge", purgeHandler)
 bot.onCommand("del", delHandler)
+
+# stickers
 bot.onCommand("getsticker", getStickerHandler)
+bot.onCommand("kang", kangHandler)
 
 bot.poll(timeout=500)

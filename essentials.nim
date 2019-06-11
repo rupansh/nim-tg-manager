@@ -5,6 +5,7 @@
 #
 
 import httpclient
+from sam import toBool
 import streams
 import strutils
 import times
@@ -88,3 +89,36 @@ proc sendDocument*(b: TeleBot, chatId: int, document: telebot.File, replyToMessa
 
     let res = await makeRequest(b, endpoint % b.token, data)
     result = unmarshal(res, Message)
+
+proc ourUploadStickerFile*(b: TeleBot, userId: int, stickId: string): Future[telebot.File] {.async.} =
+    END_POINT("uploadStickerFile")
+    var data = newMultipartData()
+    data["user_id"] = $userId
+    let sticker = await getFile(b, stickId)
+    let fileUrl = FILE_URL % @[b.token, sticker.filePath.get]
+    let buf = saveBuf(b, fileUrl)
+    data["png_sticker"] = ("sticker.png", buf[1], buf[0].readAll)
+
+    let res = await makeRequest(b, endpoint % b.token, data)
+    result = unmarshal(res, telebot.File)
+
+proc ourAddStickerToSet*(b: TeleBot, userId: int, name: string, pngSticker: string, emojis: string): Future[bool] {.async.} =
+    END_POINT("addStickerToSet")
+    var data = newMultipartData()
+    data["user_id"] = $userId
+    data["name"] = name
+    data["png_sticker"] = pngSticker
+    data["emojis"] = emojis
+    let res = await makeRequest(b, endpoint % b.token, data)
+    result = res.toBool
+
+proc ourCreateNewStickerSet*(b: TeleBot, userId: int, name: string, title: string, pngSticker: string, emojis: string): Future[bool] {.async.} =
+    END_POINT("createNewStickerSet")
+    var data = newMultipartData()
+    data["user_id"] = $userId
+    data["name"] = name
+    data["title"] = title
+    data["png_sticker"] = pngSticker
+    data["emojis"] = emojis
+    let res = await makeRequest(b, endpoint % b.token, data)
+    result = res.toBool
