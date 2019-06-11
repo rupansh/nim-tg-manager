@@ -4,11 +4,13 @@
 # you may not use this file except in compliance with the License.
 #
 
-from strutils import parseInt, replace, split
+import httpclient
+import streams
+import strutils
 import times
 import config
 
-import telebot, asyncdispatch, logging, options
+import telebot, asyncdispatch, logging, options, telebot/utils
 
 
 template canBotX(procName, canProc) =
@@ -62,3 +64,27 @@ proc getTime*(b: TeleBot, response: Message): int =
         result = 0
     else:
         result = (toUnix(getTime()).int + extratime*timeConst)
+
+proc saveBuf*(b: TeleBot, fileUrl: string): (Stream, string) =
+    var client = newHttpClient()
+    let file = client.get(fileUrl)
+    return (file.bodyStream, file.contentType)
+
+proc sendDocument*(b: TeleBot, chatId: int, document: telebot.File, replyToMessageId = 0, forceDoc = false, filename = ""): Future[Message] {.async.} =
+    ## send Document from file
+    END_POINT("sendDocument")
+    var data = newMultipartData()
+    data["chat_id"] = $chatId
+
+    if replyToMessageId != 0:
+        data["reply_to_message_id"] = $replyToMessageId
+
+    if forceDoc:
+        let fileUrl = FILE_URL % @[b.token, document.filePath.get]
+        let buf = saveBuf(b, fileUrl)
+        data["document"] = (filename, buf[1], buf[0].readAll)
+    else:
+        data["document"] = document.fileId
+
+    let res = await makeRequest(b, endpoint % b.token, data)
+    result = unmarshal(res, Message)

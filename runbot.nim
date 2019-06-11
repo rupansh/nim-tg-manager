@@ -6,6 +6,7 @@
 
 import config
 import information
+import kang
 import manage
 import msgdel
 import restrict
@@ -42,5 +43,6 @@ bot.onCommand("ping", pingHandler)
 # msg deleting
 bot.onCommand("purge", purgeHandler)
 bot.onCommand("del", delHandler)
+bot.onCommand("getsticker", getStickerHandler)
 
 bot.poll(timeout=500)
