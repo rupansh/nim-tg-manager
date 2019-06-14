@@ -4,48 +4,63 @@
 # you may not use this file except in compliance with the License.
 #
 
+import blacklist
 import config
 import information
 import kang
 import manage
 import msgdel
+from redishandling import saveRedis
 import restrict
 
 import telebot, asyncdispatch, logging, options
 
 
-let bot = newTeleBot(apiKey)
+proc main() = 
+    let bot = newTeleBot(apiKey)
 
-# management
-bot.onCommand("promote", promoteHandler)
-bot.onCommand("demote", demoteHandler)
-bot.onCommand("pin", pinHandler)
-bot.onCommand("unpin", unpinHandler)
-bot.onCommand("invite", inviteHandler)
-bot.onCommand("admins", adminList)
+    # management
+    bot.onCommand("promote", promoteHandler)
+    bot.onCommand("demote", demoteHandler)
+    bot.onCommand("pin", pinHandler)
+    bot.onCommand("unpin", unpinHandler)
+    bot.onCommand("invite", inviteHandler)
+    bot.onCommand("admins", adminList)
 
-# restrictictions
-bot.onCommand("ban", banHandler)
-bot.onCommand("tban", tbanHandler)
-bot.onCommand("banme", banMeHandler)
-bot.onCommand("unban", unbanHandler)
-bot.onCommand("kick", kickHandler)
-bot.onCommand("kickme", kickMeHandler)
-bot.onCommand("mute", muteHandler)
-bot.onCommand("tmute", tmuteHandler)
-bot.onCommand("unmute", unmuteHandler)
+    # restrictictions
+    bot.onCommand("ban", banHandler)
+    bot.onCommand("tban", tbanHandler)
+    bot.onCommand("banme", banMeHandler)
+    bot.onCommand("unban", unbanHandler)
+    bot.onCommand("kick", kickHandler)
+    bot.onCommand("kickme", kickMeHandler)
+    bot.onCommand("mute", muteHandler)
+    bot.onCommand("tmute", tmuteHandler)
+    bot.onCommand("unmute", unmuteHandler)
 
-# information
-bot.onCommand("id", idHandler)
-bot.onCommand("info", infoHandler)
-bot.onCommand("ping", pingHandler)
+    # information
+    bot.onCommand("id", idHandler)
+    bot.onCommand("info", infoHandler)
+    bot.onCommand("ping", pingHandler)
 
-# msg deleting
-bot.onCommand("purge", purgeHandler)
-bot.onCommand("del", delHandler)
+    # msg deleting
+    bot.onCommand("purge", purgeHandler)
+    bot.onCommand("del", delHandler)
 
-# stickers
-bot.onCommand("getsticker", getStickerHandler)
-bot.onCommand("kang", kangHandler)
+    # stickers
+    bot.onCommand("getsticker", getStickerHandler)
+    bot.onCommand("kang", kangHandler)
 
-bot.poll(timeout=500)
+    # blacklist
+    bot.onUpdate(blacklistListener)
+    bot.onCommand("addblacklist", addBlacklistHandler)
+    bot.onCommand("rmblacklist", rmBlacklistHandler)
+    bot.onCommand("getblacklist", getBlacklistHandler)
+
+    bot.poll(timeout=500)
+
+    # save redis server when we are done
+    addQuitProc(saveRedis)
+
+when isMainModule:
+    main()

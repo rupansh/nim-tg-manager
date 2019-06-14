@@ -8,6 +8,7 @@ import parsecfg
 from strutils import parseInt, replace, split
 import telebot
 
+
 var infodict* = loadConfig("config.ini")
 var apiKey* = infodict.getSectionValue("tg-api", "API-KEY")
 var owner* = infodict.getSectionValue("user", "OWNER_ID")
@@ -21,3 +22,5 @@ if ',' in infodict.getSectionValue("user", "SUDOS"):
 else:
     sudos.add(parseInt(infodict.getSectionValue("user", "SUDOS")))
 var allowGroup* = infodict.getSectionValue("user", "GROUP_ID") # useless rightnow
+var redisIp* = infodict.getSectionValue("redis", "REDIS_IP")
+var redisPort* = parseInt(infodict.getSectionValue("redis", "REDIS_PORT"))
