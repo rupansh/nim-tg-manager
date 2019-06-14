@@ -7,10 +7,10 @@
 ### Usage:
 - make a config.ini while referrig to the example-config.ini
 - `nimble install telebot`
+- `nimble install redis` (Make sure to start redis server on your host)
 - `nim c -d:ssl runbot.nim`
 - `./runbot`
 
 ### To-Do:
 - Add memes
-- Add handlers that require a database(probably mongodb)
-- Memes are more important than adding database support yes
+- Add remaining handlers that require a database
