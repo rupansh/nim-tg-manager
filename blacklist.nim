@@ -12,14 +12,17 @@ import telebot, asyncdispatch, logging, options
 
 
 proc blacklistListener*(b: TeleBot, u: Update) {.async.} =
-    let response = u.message.get
+    let r = u.message
+    if r.isNone:
+        return
+    let response = r.get
     if response.text.isNone:
         return
     if not (await canBotDelete(b, response)):
         return
 
     if not (await isUserAdm(b, response.chat.id.int, response.fromUser.get.id)):
-        let blacklist = await getRedisList("blacklist" & $response.chat.id.int)
+        let blacklist = waitFor getRedisList("blacklist" & $response.chat.id.int)
         if response.text.get in blacklist:
             discard await deleteMessage(b, $response.chat.id.int, response.messageId)
 
@@ -33,7 +36,7 @@ proc addBlacklistHandler*(b: TeleBot, c: Command) {.async.} =
         if text == "":
             return
         
-        let blacklist = await getRedisList("blacklist" & $response.chat.id.int)
+        let blacklist = waitFor getRedisList("blacklist" & $response.chat.id.int)
 
         if not (text in blacklist):
             await appRedisList("blacklist" & $response.chat.id.int, text)
@@ -52,7 +55,7 @@ proc rmBlacklistHandler*(b: TeleBot, c: Command) {.async.} =
         if text == "":
             return
         
-        let blacklist = await getRedisList("blacklist" & $response.chat.id.int)
+        let blacklist = waitFor getRedisList("blacklist" & $response.chat.id.int)
         if text in blacklist:
             await rmRedisList("blacklist" & $response.chat.id.int, text)
             var msg = newMessage(response.chat.id, text & " Removed!")
@@ -63,7 +66,7 @@ proc getBlacklistHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
 
     if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
-        let blacklist = await getRedisList("blacklist" & $response.chat.id.int)
+        let blacklist = waitFor getRedisList("blacklist" & $response.chat.id.int)
         var msg = newMessage(response.chat.id.int, "***Blacklisted Words:***\n" & blacklist.join("\n"))
         msg.replyToMessageId = response.messageId
         msg.parseMode = "markdown"

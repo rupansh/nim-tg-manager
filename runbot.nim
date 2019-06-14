@@ -6,6 +6,7 @@
 
 import blacklist
 import config
+import floodcheck
 import information
 import kang
 import manage
@@ -56,6 +57,11 @@ proc main() =
     bot.onCommand("addblacklist", addBlacklistHandler)
     bot.onCommand("rmblacklist", rmBlacklistHandler)
     bot.onCommand("getblacklist", getBlacklistHandler)
+
+    # flood
+    bot.onUpdate(floodListener)
+    bot.onCommand("setflood", setFloodHandler)
+    bot.onCommand("clearflood", clearFloodHandler)
 
     bot.poll(timeout=500)
 

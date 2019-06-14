@@ -11,14 +11,19 @@ import redis, asyncdispatch
 proc asSaveRedis*() {.async.} =
     let redisClient = await openAsync(redisIp, redisPort.Port)
 
-    await redisClient.bgsave()
+    try:
+        await redisClient.bgsave()
+    except RedisError: # bg save in progress
+        discard
 
 proc appRedisList*(key: string, value: string) {.async.} =
     let redisClient = await openAsync(redisIp, redisPort.Port)
 
-    discard await redisClient.rPush(key, value)
-
-    await asSaveRedis()
+    try:
+        discard await redisClient.rPush(key, value)
+        await asSaveRedis()
+    except ReplyError:
+        discard
 
 proc getRedisList*(key: string): Future[RedisList] {.async.} =
     let redisClient = await openAsync(redisIp, redisPort.Port)
@@ -28,9 +33,30 @@ proc getRedisList*(key: string): Future[RedisList] {.async.} =
 proc rmRedisList*(key: string, value: string) {.async.} =
     let redisClient = await openAsync(redisIp, redisPort.Port)
 
-    discard await redisClient.lRem(key, value)
+    try:
+        discard await redisClient.lRem(key, value)
+        await asSaveRedis()
+    except ReplyError:
+        discard
 
-    await asSaveRedis()
+proc setRedisKey*(key: string, value: string) {.async.} =
+    let redisClient = await openAsync(redisIp, redisPort.Port)
+
+    try:
+        await redisClient.setk(key, value)
+        await asSaveRedis()
+    except ReplyError:
+        discard
+
+proc getRedisKey*(key: string): Future[string] {.async.} =
+    let redisClient = await openAsync(redisIp, redisPort.Port)
+
+    return await redisClient.get(key)
+
+proc clearRedisKey*(key: string) {.async.} =
+    let redisClient = await openAsync(redisIp, redisPort.Port)
+
+    discard await redisClient.del(@[key])
 
 proc saveRedis* {.noconv.} =
     let redisClient = open(redisIp, redisPort.Port)
