@@ -11,6 +11,7 @@ import information
 import kang
 import manage
 import msgdel
+import notes
 from redishandling import saveRedis
 import restrict
 
@@ -63,6 +64,11 @@ proc main() =
     bot.onCommand("setflood", setFloodHandler)
     bot.onCommand("clearflood", clearFloodHandler)
     bot.onCommand("getflood", getFloodHandler)
+
+    # notes
+    bot.onCommand("save", addNoteHandler)
+    bot.onCommand("get", getNoteHandler)
+    bot.onCommand("clear", rmNoteHandler)
 
     bot.poll(timeout=500)
 

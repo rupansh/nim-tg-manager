@@ -21,6 +21,6 @@ if ',' in infodict.getSectionValue("user", "SUDOS"):
             sudos.add(parseInt(sudo))
 else:
     sudos.add(parseInt(infodict.getSectionValue("user", "SUDOS")))
-var allowGroup* = infodict.getSectionValue("user", "GROUP_ID") # useless rightnow
+var dumpChannel* = infodict.getSectionValue("user", "CHANNEL_USER")
 var redisIp* = infodict.getSectionValue("redis", "REDIS_IP")
 var redisPort* = parseInt(infodict.getSectionValue("redis", "REDIS_PORT"))
