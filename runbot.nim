@@ -62,6 +62,7 @@ proc main() =
     bot.onUpdate(floodListener)
     bot.onCommand("setflood", setFloodHandler)
     bot.onCommand("clearflood", clearFloodHandler)
+    bot.onCommand("getflood", getFloodHandler)
 
     bot.poll(timeout=500)
 

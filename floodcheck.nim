@@ -71,6 +71,18 @@ proc clearFloodHandler*(b: TeleBot, c: Command) {.async.} =
         else:
             await clearRedisKey("floodlimit" & $response.chat.id.int)
         
-        var msg = newMessage(response.chat.id, "Cleared floodd limit!")
+        var msg = newMessage(response.chat.id, "Cleared flood limit!")
         msg.replyToMessageId = response.messageId
         discard await b.send(msg)
+
+proc getFloodHandler*(b: TeleBot, c: Command) {.async.} =
+    let response = c.message
+
+    if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
+        let limit = waitFor getRedisKey("floodlimit" & $response.chat.id.int)
+        if limit == redisNil:
+            return
+        else:
+            var msg = newMessage(response.chat.id.int, "Current flood limit: " & limit)
+            msg.replyToMessageId = response.messageId
+            discard await b.send(msg)
