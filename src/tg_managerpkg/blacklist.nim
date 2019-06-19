@@ -35,7 +35,7 @@ proc addBlacklistHandler*(b: TeleBot, c: Command) {.async.} =
             text = c.message.text.get.split(" ")[^1]
         if text == "":
             return
-        
+
         let blacklist = waitFor getRedisList("blacklist" & $response.chat.id.int)
 
         if not (text in blacklist):
@@ -54,7 +54,7 @@ proc rmBlacklistHandler*(b: TeleBot, c: Command) {.async.} =
             text = c.message.text.get.split(" ")[^1]
         if text == "":
             return
-        
+
         let blacklist = waitFor getRedisList("blacklist" & $response.chat.id.int)
         if text in blacklist:
             await rmRedisList("blacklist" & $response.chat.id.int, text)

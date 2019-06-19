@@ -15,7 +15,7 @@ proc purgeHandler*(b: TeleBot, c: Command) {.async.} =
         msg.replyToMessageId = response.messageId
         discard await b.send(msg)
         return
-    
+
     if not (await isUserAdm(b, response.chat.id.int, response.fromUser.get.id)):
         var msg = newMessage(response.chat.id, "You aren't Adm :^(")
         msg.replyToMessageId = response.messageId
@@ -47,7 +47,7 @@ proc delHandler*(b: TeleBot, c: Command) {.async.} =
         msg.replyToMessageId = response.messageId
         discard await b.send(msg)
         return
-    
+
     if response.replyToMessage.isSome:
         discard await deleteMessage(b, $response.chat.id.int, response.replyToMessage.get.messageId)
         discard await deleteMessage(b, $response.chat.id.int, response.messageId)

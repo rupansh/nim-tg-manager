@@ -3,23 +3,24 @@
 # Licensed under the Raphielscape Public License, Version 1.b (the "License");
 # you may not use this file except in compliance with the License.
 #
-
-import blacklist
-import config
-import floodcheck
-import grestrict
-import information
-import kang
-import manage
-import msgdel
-import notes
-from redishandling import saveRedis
-import restrict
+import tg_managerpkg/[
+  blacklist,
+  config,
+  floodcheck,
+  grestrict,
+  information,
+  kang,
+  manage,
+  msgdel,
+  notes,
+  restrict
+]
+from tg_managerpkg/redishandling import saveRedis
 
 import telebot, asyncdispatch, logging, options
 
 
-proc main() = 
+proc main() =
     let bot = newTeleBot(apiKey)
 
     # management
