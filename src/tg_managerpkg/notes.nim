@@ -92,3 +92,18 @@ proc rmNoteHandler*(b: TeleBot, c: Command) {.async.} =
             var msg = newMessage(response.chat.id.int, "Removed " & torm)
             msg.replyToMessageId = response.messageId
             discard await b.send(msg)
+
+proc savedNotesHandler*(b: TeleBot, c: Command) {.async.} =
+    let response = c.message
+
+    let noteNames = waitFor getRedisList("noteNames" & $response.chat.id.int)
+    var msg: MessageObject
+
+    if noteNames == @[]:
+        msg = newMessage(response.chat.id.int, "No notes saved in this chat!")
+    else:
+        msg = newMessage(response.chat.id.int, "***Notes in this chat:***\n" & noteNames.join("\n"))
+        msg.parseMode = "markdown"
+    
+    msg.replyToMessageId = response.messageId
+    discard await b.send(msg)

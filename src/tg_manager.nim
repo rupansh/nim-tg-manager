@@ -73,6 +73,7 @@ proc main() =
     bot.onCommand("save", addNoteHandler)
     bot.onCommand("get", getNoteHandler)
     bot.onCommand("clear", rmNoteHandler)
+    bot.onCommand("saved", savedNotesHandler)
 
     # global restrictions
     bot.onUpdate(grestrictListener)
