@@ -28,6 +28,12 @@ canBotX(canBotInvite, canInviteUsers)
 canBotX(canBotRestrict, canRestrictMembers)
 canBotX(canBotDelete, canDeleteMessages)
 
+proc canBotRestrict2*(b: TeleBot, chat: string): Future[bool] {.async.} =
+    let bot = await b.getMe()
+    let botChat = await getChatMember(b, chat, bot.id)
+    if botChat.canRestrictMembers.isSome:
+        return botChat.canRestrictMembers.get
+
 proc isUserInChat*(b: TeleBot, chat_id: int, user_id: int): Future[bool] {.async.} =
     let user = await getChatMember(b, $chat_id, user_id)
     return not (user.status in ["left", "kicked"])

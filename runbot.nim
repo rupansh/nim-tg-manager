@@ -7,6 +7,7 @@
 import blacklist
 import config
 import floodcheck
+import grestrict
 import information
 import kang
 import manage
@@ -69,6 +70,13 @@ proc main() =
     bot.onCommand("save", addNoteHandler)
     bot.onCommand("get", getNoteHandler)
     bot.onCommand("clear", rmNoteHandler)
+
+    # global restrictions
+    bot.onUpdate(grestrictListener)
+    bot.onCommand("gban", gbanHandler)
+    bot.onCommand("ungban", ungbanHandler)
+    bot.onCommand("gmute", gmuteHandler)
+    bot.onCommand("ungmute", ungmuteHandler)
 
     bot.poll(timeout=500)
 
