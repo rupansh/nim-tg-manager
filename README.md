@@ -11,5 +11,6 @@
 - `./tg_manager` (Make sure to start redis server on your host)
 
 ### To-Do:
-- Add memes
-- Add remaining handlers that require a database
+- Document commands
+- Less strict command usage
+- Memes (Low priority)

@@ -1,8 +1,8 @@
 # Package
 
-version       = "0.1.2"
+version       = "0.2.0"
 author        = "rupansh"
-description   = "Telegram group manager bot"
+description   = "Telegram group manager"
 license       = "RPL-1.b"
 srcDir        = "src"
 bin           = @["tg_manager"]

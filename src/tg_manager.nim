@@ -10,6 +10,7 @@ import tg_managerpkg/[
   floodcheck,
   grestrict,
   information,
+  intro,
   kang,
   manage,
   msgdel,
@@ -85,6 +86,9 @@ proc main() =
     # rules
     bot.onCommand("setrules", setRulesHandler)
     bot.onCommand("rules", getRulesHandler)
+
+    # intro
+    bot.onCommand("start", startHandler)
 
     bot.poll(timeout=500)
 
