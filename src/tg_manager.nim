@@ -3,6 +3,7 @@
 # Licensed under the Raphielscape Public License, Version 1.b (the "License");
 # you may not use this file except in compliance with the License.
 #
+
 import tg_managerpkg/[
   blacklist,
   config,
@@ -13,7 +14,8 @@ import tg_managerpkg/[
   manage,
   msgdel,
   notes,
-  restrict
+  restrict,
+  rules
 ]
 from tg_managerpkg/redishandling import saveRedis
 
@@ -78,6 +80,10 @@ proc main() =
     bot.onCommand("ungban", ungbanHandler)
     bot.onCommand("gmute", gmuteHandler)
     bot.onCommand("ungmute", ungmuteHandler)
+
+    # rules
+    bot.onCommand("setrules", setRulesHandler)
+    bot.onCommand("rules", getRulesHandler)
 
     bot.poll(timeout=500)
 
