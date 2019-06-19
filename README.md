@@ -5,11 +5,10 @@
 **WORK IN PROGRESS**
 
 ### Usage:
+- clone this repository
 - make a config.ini while referrig to the example-config.ini
-- `nimble install telebot`
-- `nimble install redis` (Make sure to start redis server on your host)
-- `nim c -d:ssl runbot.nim`
-- `./runbot`
+- `nimble build -d:release`
+- `./tg_manager` (Make sure to start redis server on your host)
 
 ### To-Do:
 - Add memes

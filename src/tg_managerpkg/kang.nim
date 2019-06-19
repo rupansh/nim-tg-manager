@@ -28,7 +28,7 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
         var packname = fmt"hqhq{$response.fromUser.get.id}_by_{bot.username.get}"
         var title: string
         var emoji = "🌚"
-        
+
         if response.fromUser.get.username.isSome:
             title = fmt"@{response.fromUser.get.username.get}'s kang pack"
         else:

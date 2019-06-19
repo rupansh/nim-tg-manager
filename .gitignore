@@ -1,5 +1,6 @@
 ### Executable ###
 *.exe
+tg_manager
 
 # config
 config.ini

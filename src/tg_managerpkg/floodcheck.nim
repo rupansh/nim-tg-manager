@@ -29,7 +29,7 @@ proc floodListener*(b: Telebot, u: Update) {.async.} =
         let currFlood = waitFor getRedisKey("currflood" & $response.chat.id.int) # run in blocking
         if currFlood == redisNil:
             await setRedisKey("currflood" & $response.chat.id.int, $response.fromUser.get.id & " 1")
-        
+
         if $response.fromUser.get.id == currFlood.split(" ")[0]:
             let userFlood = parseInt(currFlood.split(" ")[1]) + 1
             await setRedisKey("currflood" & $response.chat.id.int, $response.fromUser.get.id & " " & $userFlood)
@@ -54,7 +54,7 @@ proc setFloodHandler*(b: TeleBot, c: Command) {.async.} =
             text = c.message.text.get.split(" ")[^1]
         if (text == "") or text.isAlpha or (parseInt(text) <= 0):
             return
-        
+
         await setRedisKey("floodlimit" & $response.chat.id.int, text)
 
         var msg = newMessage(response.chat.id.int, "Flood limit set to " & text)
@@ -70,7 +70,7 @@ proc clearFloodHandler*(b: TeleBot, c: Command) {.async.} =
             return
         else:
             await clearRedisKey("floodlimit" & $response.chat.id.int)
-        
+
         var msg = newMessage(response.chat.id, "Cleared flood limit!")
         msg.replyToMessageId = response.messageId
         discard await b.send(msg)

@@ -21,11 +21,11 @@ proc promoteHandler*(b: TeleBot, c: Command) {.async.} =
 
     if response.replyToMessage.isSome:
         if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
-            discard await promoteChatMember(b, $response.chat.id.int, response.replyToMessage.get.fromUser.get().id, 
+            discard await promoteChatMember(b, $response.chat.id.int, response.replyToMessage.get.fromUser.get().id,
             canChangeInfo = botChat.canChangeInfo.get,
             canInviteUsers = botChat.canInviteUsers.get,
-            canDeleteMessages = botChat.canDeleteMessages.get, 
-            canRestrictMembers = botChat.canRestrictMembers.get, 
+            canDeleteMessages = botChat.canDeleteMessages.get,
+            canRestrictMembers = botChat.canRestrictMembers.get,
             canPinMessages = botChat.canPinMessages.get)
             var msg = newMessage(response.chat.id, "Promoted!")
             msg.replyToMessageId = response.messageId
@@ -72,14 +72,14 @@ proc demoteHandler*(b: TeleBot, c: Command) {.async.} =
         msg.replyToMessageId = response.messageId
         discard await b.send(msg)
 
-proc pinHandler*(b: TeleBot, c: Command) {.async.} = 
+proc pinHandler*(b: TeleBot, c: Command) {.async.} =
     var response = c.message
     if not (await canBotPin(b, response)):
         var msg = newMessage(response.chat.id, "I can't Pin Messages!")
         msg.replyToMessageId = response.messageId
         discard await b.send(msg)
         return
-    
+
     if response.replyToMessage.isSome:
         if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             discard await pinChatMessage(b, $response.chat.id.int, response.replyToMessage.get.messageId)
@@ -92,14 +92,14 @@ proc pinHandler*(b: TeleBot, c: Command) {.async.} =
         msg.replyToMessageId = response.messageId
         discard await b.send(msg)
 
-proc unpinHandler*(b: TeleBot, c: Command) {.async.} = 
+proc unpinHandler*(b: TeleBot, c: Command) {.async.} =
     var response = c.message
     if not (await canBotPin(b, response)):
         var msg = newMessage(response.chat.id, "I can't unpin Messages!")
         msg.replyToMessageId = response.messageId
         discard await b.send(msg)
         return
-    
+
     if response.text.isSome:
         if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             discard await unpinChatMessage(b, $response.chat.id.int)
@@ -110,7 +110,7 @@ proc unpinHandler*(b: TeleBot, c: Command) {.async.} =
 
 proc inviteHandler*(b: TeleBot, c: Command) {.async.} =
     var response = c.message
-    
+
     if response.text.isSome:
         let chat = await getChat(b, $response.chat.id.int)
         if chat.username.isSome:
@@ -148,7 +148,7 @@ proc adminList*(b: TeleBot, c: Command) {.async.} =
             text = text & " (Creator)\n"
         else:
             text = text & "\n"
-    
+
     var msg = newMessage(response.chat.id, text)
     msg.replyToMessageId = response.messageId
     discard await b.send(msg)

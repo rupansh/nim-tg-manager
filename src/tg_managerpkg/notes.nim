@@ -34,7 +34,7 @@ proc addNoteHandler*(b: TeleBot, c: Command) {.async.} =
                             response.replyToMessage.get.messageId, true)
             noteText = $fwd.messageId
             noteFwd = true
-        
+
         if not (noteName in noteNames):
             await appRedisList("noteNames" & $response.chat.id.int, noteName)
         if noteFwd and (not (noteName in fwdList)):
@@ -88,8 +88,7 @@ proc rmNoteHandler*(b: TeleBot, c: Command) {.async.} =
                 await rmRedisList("notefwd" & $response.chat.id.int, torm)
             await rmRedisList("noteNames" & $response.chat.id, torm)
             await clearRedisKey("note-" & torm & $response.chat.id)
-            
+
             var msg = newMessage(response.chat.id.int, "Removed " & torm)
             msg.replyToMessageId = response.messageId
             discard await b.send(msg)
-    

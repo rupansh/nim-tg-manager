@@ -22,7 +22,7 @@ proc idHandler*(b: TeleBot, c: Command) {.async.} =
             sendid = "User's id: " & $response.replyToMessage.get.fromUser.get().id
     else:
         sendid = "Group id: " & $response.chat.id
-    
+
     var msg = newMessage(response.chat.id.int, sendid)
     msg.replyToMessageId = response.messageId
     discard await b.send(msg)
@@ -53,7 +53,7 @@ proc infoHandler*(b: TeleBot, c: Command) {.async.} =
         txt = txt & "Last Name:  " & user.lastName.get & "\n"
     if user.username.isSome:
         txt = txt & "Username:  @" & user.username.get & "\n"
-    
+
     var msg = newMessage(response.chat.id.int, txt)
     msg.replyToMessageId = response.messageId
     msg.parseMode = "markdown"
