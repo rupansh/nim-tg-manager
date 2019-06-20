@@ -14,6 +14,7 @@ import config
 import telebot, asyncdispatch, logging, options, telebot/utils
 
 
+# Simplified tg api procs
 template canBotX(procName, canProc) =
     proc procName*(b: TeleBot, m: Message): Future[bool] {.async.} =
         let bot = await b.getMe()
@@ -77,6 +78,8 @@ proc saveBuf*(b: TeleBot, fileUrl: string): (Stream, string) =
     let file = client.get(fileUrl)
     return (file.bodyStream, file.contentType)
 
+
+# Our implementation of tg api methods
 proc sendDocument*(b: TeleBot, chatId: int, document: telebot.File, replyToMessageId = 0, forceDoc = false, filename = ""): Future[Message] {.async.} =
     ## send Document from file
     END_POINT("sendDocument")

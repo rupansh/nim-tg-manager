@@ -13,4 +13,4 @@
 ### To-Do:
 - Document commands
 - Less strict command usage
-- Memes (Low priority)
+- Add remaining memes (Low priority)

@@ -13,6 +13,7 @@ import tg_managerpkg/[
   intro,
   kang,
   manage,
+  memes,
   msgdel,
   notes,
   restrict,
@@ -89,6 +90,12 @@ proc main() =
 
     # intro
     bot.onCommand("start", startHandler)
+
+    # memes
+    bot.onCommand("owo", owoHandler)
+    bot.onCommand("stretch", stretchHandler)
+    bot.onCommand("vapor", vaporHandler)
+    bot.onCommand("mock", mockHandler)
 
     bot.poll(timeout=500)
 
