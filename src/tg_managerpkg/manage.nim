@@ -6,6 +6,8 @@
 
 import config
 import essentials
+from strutils import split, parseInt
+
 import telebot, asyncdispatch, logging, options
 
 
@@ -13,15 +15,30 @@ proc promoteHandler*(b: TeleBot, c: Command) {.async.} =
     var response = c.message
     let bot = await b.getMe()
     let botChat = await getChatMember(b, $response.chat.id.int, bot.id)
+    var promId = 0
+    var failStr = "Reply to a person to promote them!"
     if not (await canBotPromote(b, response)):
         var msg = newMessage(response.chat.id, "I can't promote members!")
         msg.replyToMessageId = response.messageId
         discard await b.send(msg)
         return
 
-    if response.replyToMessage.isSome:
-        if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
-            discard await promoteChatMember(b, $response.chat.id.int, response.replyToMessage.get.fromUser.get().id,
+    if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
+        if response.replyToMessage.isSome:
+            promId = response.replyToMessage.get.fromUser.get.id
+        elif ' ' in response.text.get:
+            if response.text.get.split(" ").len > 1:
+                promId = parseInt(response.text.get.split(" ")[^1])
+                if not (await isUserInChat(b, response.chat.id.int, promId)):
+                    promId = 0
+                    failStr = "Invalid user id"
+
+        if promId == 0:
+            var msg = newMessage(response.chat.id, failStr)
+            msg.replyToMessageId = response.messageId
+            discard await b.send(msg)
+        else:
+            discard await promoteChatMember(b, $response.chat.id.int, promId,
             canChangeInfo = botChat.canChangeInfo.get,
             canInviteUsers = botChat.canInviteUsers.get,
             canDeleteMessages = botChat.canDeleteMessages.get,
@@ -30,27 +47,38 @@ proc promoteHandler*(b: TeleBot, c: Command) {.async.} =
             var msg = newMessage(response.chat.id, "Promoted!")
             msg.replyToMessageId = response.messageId
             discard await b.send(msg)
-        else:
-            var msg = newMessage(response.chat.id, "You aren't adm :^(")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
     else:
-        var msg = newMessage(response.chat.id, "Reply to a person to promote them!")
+        var msg = newMessage(response.chat.id, "You aren't adm :^(")
         msg.replyToMessageId = response.messageId
         discard await b.send(msg)
 
 proc demoteHandler*(b: TeleBot, c: Command) {.async.} =
     var response = c.message
+    var demId = 0
+    var failStr = "Reply to a user to demote them"
     if not (await canBotPromote(b, response)):
         var msg = newMessage(response.chat.id, "I can't demote members!")
         msg.replyToMessageId = response.messageId
         discard await b.send(msg)
         return
 
-    if response.replyToMessage.isSome:
-        if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
+    if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
+        if response.replyToMessage.isSome:
+            demId = response.replyToMessage.get.fromUser.get.id
+        elif ' ' in response.text.get:
+            if response.text.get.split(" ").len > 1:
+                demId = parseInt(response.text.get.split(" ")[^1])
+                if not (await isUserInChat(b, response.chat.id.int, demId)):
+                    demId = 0
+                    failStr = "Invalid user id"
+
+        if demId == 0:
+            var msg = newMessage(response.chat.id, failStr)
+            msg.replyToMessageId = response.messageId
+            discard await b.send(msg)
+        else:
             try:
-                discard await promoteChatMember(b, $response.chat.id.int, response.replyToMessage.get.fromUser.get().id,
+                discard await promoteChatMember(b, $response.chat.id.int, demId,
                     canChangeInfo = false,
                     canInviteUsers = false,
                     canDeleteMessages = false,
@@ -63,12 +91,8 @@ proc demoteHandler*(b: TeleBot, c: Command) {.async.} =
                 var msg = newMessage(response.chat.id, "Failed to demote!")
                 msg.replyToMessageId = response.messageId
                 discard await b.send(msg)
-        else:
-            var msg = newMessage(response.chat.id, "You aren't adm :^(")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
     else:
-        var msg = newMessage(response.chat.id, "Reply to a person to demote them!")
+        var msg = newMessage(response.chat.id, "You aren't adm :^(")
         msg.replyToMessageId = response.messageId
         discard await b.send(msg)
 

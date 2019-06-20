@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.2.1"
+version       = "0.3.0"
 author        = "rupansh"
 description   = "Telegram group manager"
 license       = "RPL-1.b"
