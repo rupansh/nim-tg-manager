@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.3.0"
+version       = "0.3.1"
 author        = "rupansh"
 description   = "Telegram group manager"
 license       = "RPL-1.b"
@@ -11,4 +11,4 @@ bin           = @["tg_manager"]
 # Dependencies
 
 requires "nim >= 0.20.0"
-requires "telebot >= 0.6.4", "redis >= 0.3.0"
+requires "telebot >= 0.6.4", "redis >= 0.3.0", "imageman >= 0.2.1"

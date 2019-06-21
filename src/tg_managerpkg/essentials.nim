@@ -73,7 +73,9 @@ proc getTime*(b: TeleBot, response: Message): int =
     else:
         result = (toUnix(getTime()).int + extratime*timeConst)
 
-proc saveBuf*(b: TeleBot, fileUrl: string): (Stream, string) =
+
+# not provided by nim libs
+proc saveBuf*(fileUrl: string): (Stream, string) =
     var client = newHttpClient()
     let file = client.get(fileUrl)
     return (file.bodyStream, file.contentType)
@@ -91,7 +93,7 @@ proc sendDocument*(b: TeleBot, chatId: int, document: telebot.File, replyToMessa
 
     if forceDoc:
         let fileUrl = FILE_URL % @[b.token, document.filePath.get]
-        let buf = saveBuf(b, fileUrl)
+        let buf = saveBuf(fileUrl)
         data["document"] = (filename, buf[1], buf[0].readAll)
     else:
         data["document"] = document.fileId
@@ -105,11 +107,21 @@ proc ourUploadStickerFile*(b: TeleBot, userId: int, stickId: string): Future[tel
     data["user_id"] = $userId
     let sticker = await getFile(b, stickId)
     let fileUrl = FILE_URL % @[b.token, sticker.filePath.get]
-    let buf = saveBuf(b, fileUrl)
+    let buf = saveBuf(fileUrl)
     data["png_sticker"] = ("sticker.png", buf[1], buf[0].readAll)
 
     let res = await makeRequest(b, endpoint % b.token, data)
     result = unmarshal(res, telebot.File)
+
+proc uploadStickerFileFromBuf*(b: TeleBot, userId: int, img: seq[byte]): Future[telebot.File] {.async.} =
+    END_POINT("uploadStickerFile")
+    var data = newMultipartData()
+    data["user_id"] = $userId
+    let buf = cast[string](img)
+    data["png_sticker"] = ("sticker.png", "image/png", buf)
+
+    let res = await makeRequest(b, endpoint % b.token, data)
+    result = unmarshal(res, telebot.FIle)
 
 proc ourAddStickerToSet*(b: TeleBot, userId: int, name: string, pngSticker: string, emojis: string): Future[bool] {.async.} =
     END_POINT("addStickerToSet")

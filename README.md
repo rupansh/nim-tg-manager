@@ -11,6 +11,5 @@
 - `./tg_manager` (Make sure to start redis server on your host)
 
 ### To-Do:
-- Option to kang photos (Currently only possible with c libs)
 - Document commands
 - Add remaining memes (Low priority)

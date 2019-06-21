@@ -5,10 +5,12 @@
 #
 
 import essentials
+import imageman
+import streams
 import strformat
 import strutils
 
-import telebot, asyncdispatch, logging, options
+import telebot, asyncdispatch, logging, options, telebot/utils
 
 
 proc getStickerHandler*(b: TeleBot, c: Command) {.async.} =
@@ -44,25 +46,51 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
         if (not emojiBypass) and response.replyToMessage.get.sticker.get.emoji.isSome:
             emoji = response.replyToMessage.get.sticker.get.emoji.get
 
+        var sticker: telebot.File
         if response.replyToMessage.get.sticker.isSome:
-            var succ: bool
-            let sticker = await ourUploadStickerFile(b, response.fromUser.get.id, response.replyToMessage.get.sticker.get.fileId) # needed to fool retarded api
-            try:
-                succ = await ourAddStickerToSet(b, response.fromUser.get.id, packname, sticker.fileId, emoji)
-            except IOError:
-                succ = await ourCreateNewStickerSet(b, response.fromUser.get.id, packname, title, sticker.fileId, emoji)
-
-            if succ:
-                var msg = newMessage(response.chat.id, fmt"Added sticker to your [pack](t.me/addstickers/{packname})")
-                msg.replyToMessageId = response.messageId
-                msg.parseMode = "markdown"
-                discard await b.send(msg)
-            else:
-                var msg = newMessage(response.chat.id, "Unknown Problem occured!")
-                msg.replyToMessageId = response.messageId
-                discard await b.send(msg)
+            sticker = await ourUploadStickerFile(b, response.fromUser.get.id, response.replyToMessage.get.sticker.get.fileId) # needed to fool retarded api
+        elif response.replyToMessage.get.photo.isSome:
+            let photoFile = await getFile(b, response.replyToMessage.get.photo.get[^1].fileId)
+            let photoUrl = FILE_URL % @[b.token, photoFile.filePath.get]
+            let buf = saveBuf(photoUrl)[0].readAll
+            let buf2 = cast[seq[byte]](buf)
+            var img = loadImageFromMemory(buf2)
+            if not (img.width <= 512 and img.height <= 512):
+                var ratio: float
+                var newWidth: int
+                var newHeight: int
+                if img.width > img.height:
+                    ratio = 512/img.width
+                    newWidth = 512
+                    newHeight = int(512*ratio)
+                else:
+                    ratio = 512/img.height
+                    newWidth = int(512*ratio)
+                    newHeight = 512
+                img = img.resizedNN(newWidth, newHeight)
+            let pngImg = writePNG(img)
+            sticker = await uploadStickerFileFromBuf(b, response.fromUser.get.id, pngImg)
+        else:
+            var msg = newMessage(response.chat.id, "Reply to a sticker/image to kang it!")
+            msg.replyToMessageId = response.messageId
+            discard await b.send(msg)
             return
 
-    var msg = newMessage(response.chat.id, "Reply to a sticker to kang it!")
-    msg.replyToMessageId = response.messageId
-    discard await b.send(msg)
+        var succ: bool
+        try:
+            succ = await ourAddStickerToSet(b, response.fromUser.get.id, packname, sticker.fileId, emoji)
+        except IOError:
+            try:
+                succ = await ourCreateNewStickerSet(b, response.fromUser.get.id, packname, title, sticker.fileId, emoji)
+            except IOError:
+                succ = false
+
+        if succ:
+            var msg = newMessage(response.chat.id, fmt"Added sticker to your [pack](t.me/addstickers/{packname})")
+            msg.replyToMessageId = response.messageId
+            msg.parseMode = "markdown"
+            discard await b.send(msg)
+        else:
+            var msg = newMessage(response.chat.id, "Unknown Problem occured!")
+            msg.replyToMessageId = response.messageId
+            discard await b.send(msg)
