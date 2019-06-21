@@ -75,25 +75,25 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
             discard await b.send(msg)
             return
 
-        var succ: bool
+        var succs: bool
         try:
-            succ = await ourAddStickerToSet(b, response.fromUser.get.id, packname, sticker.fileId, emoji)
+            succs = await ourAddStickerToSet(b, response.fromUser.get.id, packname, sticker.fileId, emoji)
         except IOError as ioerr:
             if ioerr.msg.contains("500"):
-                succ = true
+                succs = true
             else:
                 try:
-                    succ = await ourCreateNewStickerSet(b, response.fromUser.get.id, packname, title, sticker.fileId, emoji)
+                    succs = await ourCreateNewStickerSet(b, response.fromUser.get.id, packname, title, sticker.fileId, emoji)
                 except IOError as newIoerr:
                     if newIoerr.msg.contains("500"):
-                        succ = true
+                        succs = true
                     elif newIoerr.msg.contains("sticker set"):
-                        succ = true
+                        succs = true
                     else:
                         echo newIoerr.msg
-                        succ = false
+                        succs = false
 
-        if succ:
+        if succs:
             var msg = newMessage(response.chat.id, fmt"Added sticker to your [pack](t.me/addstickers/{packname})")
             msg.replyToMessageId = response.messageId
             msg.parseMode = "markdown"
