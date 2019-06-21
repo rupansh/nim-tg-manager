@@ -79,15 +79,15 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
         try:
             succs = await ourAddStickerToSet(b, response.fromUser.get.id, packname, sticker.fileId, emoji)
         except IOError as ioerr:
-            if ioerr.msg.contains("500"):
+            if "500" in ioerr.msg:
                 succs = true
             else:
                 try:
                     succs = await ourCreateNewStickerSet(b, response.fromUser.get.id, packname, title, sticker.fileId, emoji)
                 except IOError as newIoerr:
-                    if newIoerr.msg.contains("500"):
+                    if "500" in newIoerr.msg:
                         succs = true
-                    elif newIoerr.msg.contains("sticker set"):
+                    elif "sticker set" in newIoerr.msg:
                         succs = true
                     else:
                         echo newIoerr.msg
