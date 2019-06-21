@@ -43,11 +43,10 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
                 emoji = emojiarr[^1]
                 emojiBypass = true
 
-        if (not emojiBypass) and response.replyToMessage.get.sticker.get.emoji.isSome:
-            emoji = response.replyToMessage.get.sticker.get.emoji.get
-
         var sticker: telebot.File
         if response.replyToMessage.get.sticker.isSome:
+            if (not emojiBypass) and response.replyToMessage.get.sticker.get.emoji.isSome:
+                emoji = response.replyToMessage.get.sticker.get.emoji.get
             sticker = await ourUploadStickerFile(b, response.fromUser.get.id, response.replyToMessage.get.sticker.get.fileId) # needed to fool retarded api
         elif response.replyToMessage.get.photo.isSome:
             let photoFile = await getFile(b, response.replyToMessage.get.photo.get[^1].fileId)
@@ -79,11 +78,20 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
         var succ: bool
         try:
             succ = await ourAddStickerToSet(b, response.fromUser.get.id, packname, sticker.fileId, emoji)
-        except IOError:
-            try:
-                succ = await ourCreateNewStickerSet(b, response.fromUser.get.id, packname, title, sticker.fileId, emoji)
-            except IOError:
-                succ = false
+        except IOError as ioerr:
+            if ioerr.msg.contains("500"):
+                succ = true
+            else:
+                try:
+                    succ = await ourCreateNewStickerSet(b, response.fromUser.get.id, packname, title, sticker.fileId, emoji)
+                except IOError as newIoerr:
+                    if newIoerr.msg.contains("500"):
+                        succ = true
+                    elif newIoerr.msg.contains("sticker set"):
+                        succ = true
+                    else:
+                        echo newIoerr.msg
+                        succ = false
 
         if succ:
             var msg = newMessage(response.chat.id, fmt"Added sticker to your [pack](t.me/addstickers/{packname})")
