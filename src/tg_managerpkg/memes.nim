@@ -123,18 +123,15 @@ proc zalgoHandler*(b: TeleBot, c: Command) {.async.} =
                     break
 
                 let randint = rand(0..2)
-                if randint == 0:
-                    if numUp > 0:
-                        strcharac = strcharac.strip() & sample(ZALG_TOP).strip()
-                        numUp.dec()
-                elif randint == 1:
-                    if numD > 0:
+                if randint == 0 and numUp > 0:
+                    strcharac = strcharac.strip() & sample(ZALG_TOP).strip()
+                    numUp.dec()
+                elif randint == 1 and numD > 0:
                         strcharac = strcharac.strip() & sample(ZALG_BOT).strip()
                         numD.dec()
-                else:
-                    if numM > 0:
-                        strcharac = strcharac.strip() & sample(ZALG_MID).strip()
-                        numM.dec()
+                elif numM > 0:
+                    strcharac = strcharac.strip() & sample(ZALG_MID).strip()
+                    numM.dec()
 
             replyText &= strcharac
     else:
