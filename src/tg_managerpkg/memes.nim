@@ -114,24 +114,15 @@ proc zalgoHandler*(b: TeleBot, c: Command) {.async.} =
                 replyText &= strcharac
                 continue
 
-            var numUp = rand(1..3)
-            var numD = rand(1..3)
-            var numM = rand(1..2)
-
             for i in 0..<3:
-                if numD + numM + numUp == 0:
-                    break
+                let randint = rand(2)
 
-                let randint = rand(0..2)
-                if randint == 0 and numUp > 0:
+                if randint == 0:
                     strcharac = strcharac.strip() & sample(ZALG_TOP).strip()
-                    numUp.dec()
-                elif randint == 1 and numD > 0:
+                elif randint == 1:
                         strcharac = strcharac.strip() & sample(ZALG_BOT).strip()
-                        numD.dec()
-                elif numM > 0:
+                else:
                     strcharac = strcharac.strip() & sample(ZALG_MID).strip()
-                    numM.dec()
 
             replyText &= strcharac
     else:
