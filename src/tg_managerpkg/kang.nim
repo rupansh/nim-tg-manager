@@ -5,10 +5,14 @@
 #
 
 import essentials
+import htmlparser
+import httpclient
 import imageman
 import streams
 import strformat
 import strutils
+import unicode
+import xmltree
 
 import telebot, asyncdispatch, logging, options, telebot/utils
 
@@ -75,23 +79,25 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
             discard await b.send(msg)
             return
 
-        var succs: bool
-        try:
-            succs = await ourAddStickerToSet(b, response.fromUser.get.id, packname, sticker.fileId, emoji)
-        except IOError as ioerr:
-            if "500" in ioerr.msg:
-                succs = true
-            else:
-                try:
-                    succs = await ourCreateNewStickerSet(b, response.fromUser.get.id, packname, title, sticker.fileId, emoji)
-                except IOError as newIoerr:
-                    if "500" in newIoerr.msg:
-                        succs = true
-                    elif "sticker set" in newIoerr.msg:
-                        succs = true
-                    else:
-                        echo newIoerr.msg
-                        succs = false
+        var client = newAsyncHttpClient()
+        let stickReq = await client.get("https://t.me/addstickers/" & packname)
+        var stickText = innerText(parseHtml(await stickReq.body).findAll("strong")[2])
+        stickText.delete(7, 8) # i still can't figure out UTF8 strings kek
+
+        var succs = false
+        if "StickerSet" in stickText:
+            echo stickText
+            try:
+                succs = await ourCreateNewStickerSet(b, response.fromUser.get.id, packname, title, sticker.fileId, emoji)
+            except IOError as ioerr:
+                if "500" in ioerr.msg:
+                    succs = true
+        else:
+            try:
+                succs = await ourAddStickerToSet(b, response.fromUser.get.id, packname, sticker.fileId, emoji)
+            except IOError as ioerr:
+                if "500" in ioerr.msg:
+                    succs = true
 
         if succs:
             var msg = newMessage(response.chat.id, fmt"Added sticker to your [pack](t.me/addstickers/{packname})")
