@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 #
 
-from random import sample, rand
+import random
 import re
 from strutils import replace, repeat
 import tables
@@ -13,6 +13,10 @@ import unicode
 import telebot, asyncdispatch, logging, options
 
 
+const ZALG_BOT = ["̖"," ̗"," ̘"," ̙"," ̜"," ̝"," ̞"," ̟"," ̠"," ̤"," ̥"," ̦"," ̩"," ̪"," ̫"," ̬"," ̭"," ̮"," ̯"," ̰"," ̱"," ̲"," ̳"," ̹"," ̺"," ̻"," ̼"," ͅ"," ͇"," ͈"," ͉"," ͍"," ͎"," ͓"," ͔"," ͕"," ͖"," ͙"," ͚"," ",]
+const ZALG_TOP = [" ̍"," ̎"," ̄"," ̅"," ̿"," ̑"," ̆"," ̐"," ͒"," ͗"," ͑"," ̇"," ̈"," ̊"," ͂"," ̓"," ̈́"," ͊"," ͋"," ͌"," ̃"," ̂"," ̌"," ͐"," ́"," ̋"," ̏"," ̽"," ̉"," ͣ"," ͤ"," ͥ"," ͦ"," ͧ"," ͨ"," ͩ"," ͪ"," ͫ"," ͬ"," ͭ"," ͮ"," ͯ"," ̾"," ͛"," ͆"," ̚",]
+const ZALG_MID = [" ̕"," ̛"," ̀"," ́"," ͘"," ̡"," ̢"," ̧"," ̨"," ̴"," ̵"," ̶"," ͜"," ͝"," ͞"," ͟"," ͠"," ͢"," ̸"," ̷"," ͡",]
+
 proc owoHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
 
@@ -20,6 +24,7 @@ proc owoHandler*(b: TeleBot, c: Command) {.async.} =
     if not (response.replyToMessage.isSome and response.replyToMessage.get.text.isSome):
         replyText = "You must reply to a text message!"
     else:
+        randomize()
         let faces = ["(・`ω´・)",";;w;;","owo","UwU",">w<","^w^","( ^ _ ^)∠☆",
         "(ô_ô)","~:o",";____;", "(*^*)", "(>_<)", "(♥_♥)", "*(^O^)*", "((+_+))"]
         replyText = replace(response.replyToMessage.get.text.get, re"[ｒｌ]", "ｗ")
@@ -45,6 +50,7 @@ proc stretchHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
     var replyText: string
     if response.replyToMessage.isSome and response.replyToMessage.get.text.isSome:
+        randomize()
         replyText = replacef(response.replyToMessage.get.text.get, re"([aeiouAEIOUａｅｉｏｕＡＥＩＯＵ])", repeat("$1", rand(3..10)))
         if validateUTF8(replyText) != -1:
             replyText = "Can't handle non ascii text properly yet!"
@@ -81,6 +87,7 @@ proc mockHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
     var replyText = ""
     if response.replyToMessage.isSome and response.replyToMessage.get.text.isSome:
+        randomize()
         for char in response.replyToMessage.get.text.get:
             if sample([true, false]):
                 replyText &= toUTF8(toUpper(ord(char).Rune))
@@ -94,3 +101,46 @@ proc mockHandler*(b: TeleBot, c: Command) {.async.} =
     var msg = newMessage(response.chat.id.int, replyText)
     msg.replyToMessageId = response.messageId
     discard await b.send(msg)
+
+proc zalgoHandler*(b: TeleBot, c: Command) {.async.} =
+    let response = c.message
+    var replyText = ""
+    if response.replyToMessage.isSome and response.replyToMessage.get.text.isSome:
+        let handleText = response.replyToMessage.get.text.get
+        randomize()
+        for charac in handleText:
+            var strcharac = $charac
+            if not strcharac.isAlpha():
+                replyText &= strcharac
+                continue
+
+            var numUp = rand(1..3)
+            var numD = rand(1..3)
+            var numM = rand(1..2)
+
+            for i in 0..<3:
+                if numD + numM + numUp == 0:
+                    break
+
+                let randint = rand(0..2)
+                if randint == 0:
+                    if numUp > 0:
+                        strcharac = strcharac.strip() & sample(ZALG_TOP).strip()
+                        numUp.dec()
+                elif randint == 1:
+                    if numD > 0:
+                        strcharac = strcharac.strip() & sample(ZALG_BOT).strip()
+                        numD.dec()
+                else:
+                    if numM > 0:
+                        strcharac = strcharac.strip() & sample(ZALG_MID).strip()
+                        numM.dec()
+
+            replyText &= strcharac
+    else:
+        replyText = "Reply to a text message!"
+
+    var msg = newMessage(response.chat.id.int, replyText)
+    msg.replyToMessageId = response.messageId
+    discard await b.send(msg)
+                

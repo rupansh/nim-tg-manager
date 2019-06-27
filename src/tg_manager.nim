@@ -96,6 +96,7 @@ proc main() =
     bot.onCommand("stretch", stretchHandler)
     bot.onCommand("vapor", vaporHandler)
     bot.onCommand("mock", mockHandler)
+    bot.onCommand("zalgo", zalgoHandler)
 
     bot.poll(timeout=500)
 
