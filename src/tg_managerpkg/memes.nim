@@ -5,7 +5,7 @@
 #
 
 import random
-import re
+import regex
 from strutils import replace, repeat
 import tables
 import unicode
@@ -27,20 +27,20 @@ proc owoHandler*(b: TeleBot, c: Command) {.async.} =
         randomize()
         let faces = ["(・`ω´・)",";;w;;","owo","UwU",">w<","^w^","( ^ _ ^)∠☆",
         "(ô_ô)","~:o",";____;", "(*^*)", "(>_<)", "(♥_♥)", "*(^O^)*", "((+_+))"]
-        replyText = replace(response.replyToMessage.get.text.get, re"[ｒｌ]", "ｗ")
-        replyText = replace(reply_text, re"[RL]", "W")
-        replyText = replace(reply_text, re"[ＲＬ]", "Ｗ")
-        replyText = replacef(reply_text, re"n([aeiouａｅｉｏｕ])", "ny$1")
-        replyText = replacef(reply_text, re"ｎ([ａｅｉｏｕ])", "ｎｙ$1")
-        replyText = replacef(reply_text, re"N([aeiouAEIOU])", "Ny$1")
-        replyText = replacef(reply_text, re"Ｎ([ａｅｉｏｕＡＥＩＯＵ])", "Ｎｙ$1", )
-        replyText = replace(reply_text, re"\!+", " " & sample(faces))
-        replyText = replace(reply_text, re"！+", " " & sample(faces))
+        replyText = regex.replace(response.replyToMessage.get.text.get, re"[ｒｌ]", "ｗ")
+        replyText = regex.replace(reply_text, re"[RL]", "W")
+        replyText = regex.replace(reply_text, re"[ＲＬ]", "Ｗ")
+        replyText = regex.replace(reply_text, re"n([aeiouａｅｉｏｕ])", "ny$1")
+        replyText = regex.replace(reply_text, re"ｎ([ａｅｉｏｕ])", "ｎｙ$1")
+        replyText = regex.replace(reply_text, re"N([aeiouAEIOU])", "Ny$1")
+        replyText = regex.replace(reply_text, re"Ｎ([ａｅｉｏｕＡＥＩＯＵ])", "Ｎｙ$1", )
+        replyText = regex.replace(reply_text, re"\!+", " " & sample(faces))
+        replyText = regex.replace(reply_text, re"！+", " " & sample(faces))
         replyText = reply_text.replace("ove", "uv")
         replyText = reply_text.replace("ｏｖｅ", "ｕｖ")
         replyText &= " " & sample(faces)
         if validateUTF8(replyText) != -1:
-            replyText = "Can't handle non ascii text properly yet!"
+            replyText = "Invalid text!"
     
     var msg = newMessage(response.chat.id.int, replyText)
     msg.replyToMessageId = response.messageId
@@ -51,9 +51,9 @@ proc stretchHandler*(b: TeleBot, c: Command) {.async.} =
     var replyText: string
     if response.replyToMessage.isSome and response.replyToMessage.get.text.isSome:
         randomize()
-        replyText = replacef(response.replyToMessage.get.text.get, re"([aeiouAEIOUａｅｉｏｕＡＥＩＯＵ])", repeat("$1", rand(3..10)))
+        replyText = regex.replace(response.replyToMessage.get.text.get, re"([aeiouAEIOUａｅｉｏｕＡＥＩＯＵ])", repeat("$1", rand(3..10)))
         if validateUTF8(replyText) != -1:
-            replyText = "Can't handle non ascii text properly yet!"
+            replyText = "Invalid text!"
     else:
         replyText = "You must reply to a text message!"
     
@@ -75,7 +75,7 @@ proc vaporHandler*(b: TeleBot, c: Command) {.async.} =
                 replyText &= charac
 
         if validateUTF8(replyText) != -1:
-            replyText = "Can't handle non ascii text properly yet!"
+            replyText = "Invalid text!"
     else:
         replyText = "You must reply to a text message!"
     
