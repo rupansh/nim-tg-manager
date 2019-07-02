@@ -61,7 +61,7 @@ proc getTime*(b: TeleBot, response: Message): int =
         extratime = 0
 
     try:
-        extratime = parseInt(response.text.get.split(" ")[^1].replace(toRepl, ""))
+        extratime = parseInt(response.text.get.split(" ")[^2].replace(toRepl, ""))
     except:
         extratime = 0
 

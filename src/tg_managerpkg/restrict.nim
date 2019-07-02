@@ -73,7 +73,7 @@ proc tbanHandler*(b: TeleBot, c: Command) {.async.} =
         if response.replyToMessage.isSome:
             banId = response.replyToMessage.get.fromUser.get.id
         elif ' ' in response.text.get:
-            if response.text.get.split(" ").len > 1:
+            if response.text.get.split(" ").len > 2:
                 banId = parseInt(response.text.get.split(" ")[^1])
                 if not (await isUserInChat(b, response.chat.id.int, banId)):
                     banId = 0
@@ -291,7 +291,7 @@ proc tmuteHandler*(b: TeleBot, c: Command) {.async.} =
         if response.replyToMessage.isSome:
             muteId = response.replyToMessage.get.fromUser.get.id
         elif ' ' in response.text.get:
-            if response.text.get.split(" ").len > 1:
+            if response.text.get.split(" ").len > 2:
                 muteId = parseInt(response.text.get.split(" ")[^1])
                 if not (await isUserInChat(b, response.chat.id.int, muteId)):
                     muteId = 0
