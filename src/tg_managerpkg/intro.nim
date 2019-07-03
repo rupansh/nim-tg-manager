@@ -22,3 +22,12 @@ proc startHandler*(b: TeleBot, c: Command) {.async.} =
     msg.replyToMessageId = response.messageId
     msg.parseMode = "markdown"
     discard await b.send(msg)
+
+proc helpHandler*(b: TeleBot, c: Command) {.async.} =
+    let response = c.message
+
+    var msg = newMessage(response.chat.id, """[Command List](https://rupansh.github.io/nimtg-man.github.io/paperplane/cmds.html)
+[Source Code](https://github.com/rupansh/nim-tg-manager)""")
+    msg.replyToMessageId = response.messageId
+    msg.parseMode = "markdown"
+    discard await b.send(msg)

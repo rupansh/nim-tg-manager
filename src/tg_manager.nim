@@ -90,6 +90,7 @@ proc main() =
 
     # intro
     bot.onCommand("start", startHandler)
+    bot.onCommand("help", helpHandler)
 
     # memes
     bot.onCommand("owo", owoHandler)
