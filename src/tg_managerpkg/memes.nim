@@ -88,11 +88,14 @@ proc mockHandler*(b: TeleBot, c: Command) {.async.} =
     var replyText = ""
     if response.replyToMessage.isSome and response.replyToMessage.get.text.isSome:
         randomize()
-        for char in response.replyToMessage.get.text.get:
-            if sample([true, false]):
-                replyText &= toUTF8(toUpper(ord(char).Rune))
+        for charac in response.replyToMessage.get.text.get:
+            if sample([true, false]) and isAlpha(ord(charac).Rune):
+                if isLower(ord(charac).Rune):
+                    replyText &= toUTF8(toUpper(ord(charac).Rune))
+                else:
+                    replyText &= toUTF8(toLower(ord(charac).Rune))
             else:
-                replyText &= char
+                replyText &= charac
         if validateUTF8(replyText) != -1:
             replyText = "Can't handle non ascii text properly yet!"
     else:
