@@ -22,7 +22,7 @@ template ourOnCommand*(bot: TeleBot, cmd: string, procName: untyped) =
         proc ourProc(b: TeleBot, c: Command) {.async.} =
             let ourName = cmd
             let response = c.message
-            let disabled = waitFor getRedisList("disabled" & $response.chat.id.int)
+            let disabled = await getRedisList("disabled" & $response.chat.id.int)
             if not (ourName in disabled):
                 await procName(b, c)
         bot.onCommand(cmd, ourProc)
