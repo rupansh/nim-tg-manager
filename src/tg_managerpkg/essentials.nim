@@ -5,6 +5,7 @@
 #
 
 import httpclient
+import redishandling
 from sam import toBool
 import streams
 import strutils
@@ -15,6 +16,18 @@ import telebot, asyncdispatch, logging, options, telebot/utils
 
 
 # Simplified tg api procs
+template ourOnCommand*(bot: TeleBot, cmd: string, procName: untyped) =
+    cmdList &= cmd
+    block procName:
+        proc ourProc(b: TeleBot, c: Command) {.async.} =
+            let ourName = cmd
+            let response = c.message
+            let disabled = waitFor getRedisList("disabled" & $response.chat.id.int)
+            if not (ourName in disabled):
+                await procName(b, c)
+        bot.onCommand(cmd, ourProc)
+
+
 template canBotX(procName, canProc) =
     proc procName*(b: TeleBot, m: Message): Future[bool] {.async.} =
         let bot = await b.getMe()
@@ -41,7 +54,7 @@ proc isUserInChat*(b: TeleBot, chat_id: int, user_id: int): Future[bool] {.async
 
 proc isUserAdm*(b: TeleBot, chat_id: int, user_id: int): Future[bool] {.async.} =
     let user = await getChatMember(b, $chat_id, user_id)
-    return (user.status in ["creator", "administrator"]) or (user_id in sudos) or (user_id == parseInt(owner))
+    return (user.status in ["creator", "administrator"]) or (user_id in sudos) or (user_id == parseInt(config.owner))
 
 proc getTime*(b: TeleBot, response: Message): int =
     var toRepl: string

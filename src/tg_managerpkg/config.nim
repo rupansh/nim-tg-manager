@@ -24,3 +24,4 @@ else:
 var dumpChannel* = infodict.getSectionValue("user", "CHANNEL_USER")
 var redisIp* = infodict.getSectionValue("redis", "REDIS_IP")
 var redisPort* = parseInt(infodict.getSectionValue("redis", "REDIS_PORT"))
+var cmdList*: seq[string]
