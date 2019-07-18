@@ -4,6 +4,7 @@
 # you may not use this file except in compliance with the License.
 #
 
+import config
 import essentials
 import redishandling
 import strutils
@@ -23,7 +24,7 @@ proc disableHandler*(b: TeleBot, c: Command) {.async.} =
         return
 
     let disabled = waitFor getRedisList("disabled" & $response.chat.id.int)
-    if text in disabled and not (text in disabled):
+    if text in cmdList and not (text in disabled):
         await appRedisList("disabled" & $response.chat.id.int, text)
 
         var msg = newMessage(response.chat.id, text & " Disabled")
