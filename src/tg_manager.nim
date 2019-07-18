@@ -30,23 +30,23 @@ proc main() =
     let bot = newTeleBot(apiKey)
 
     # management
-    bot.canDisableCommand("promote", promoteHandler)
-    bot.canDisableCommand("demote", demoteHandler)
-    bot.canDisableCommand("pin", pinHandler)
-    bot.canDisableCommand("unpin", unpinHandler)
+    bot.onCommand("promote", promoteHandler)
+    bot.onCommand("demote", demoteHandler)
+    bot.onCommand("pin", pinHandler)
+    bot.onCommand("unpin", unpinHandler)
     bot.canDisableCommand("invite", inviteHandler)
     bot.canDisableCommand("admins", adminList)
 
     # restrictictions
-    bot.canDisableCommand("ban", banHandler)
-    bot.canDisableCommand("tban", tbanHandler)
+    bot.onCommand("ban", banHandler)
+    bot.onCommand("tban", tbanHandler)
     bot.canDisableCommand("banme", banMeHandler)
-    bot.canDisableCommand("unban", unbanHandler)
-    bot.canDisableCommand("kick", kickHandler)
+    bot.onCommand("unban", unbanHandler)
+    bot.onCommand("kick", kickHandler)
     bot.canDisableCommand("kickme", kickMeHandler)
-    bot.canDisableCommand("mute", muteHandler)
-    bot.canDisableCommand("tmute", tmuteHandler)
-    bot.canDisableCommand("unmute", unmuteHandler)
+    bot.onCommand("mute", muteHandler)
+    bot.onCommand("tmute", tmuteHandler)
+    bot.onCommand("unmute", unmuteHandler)
 
     # information
     bot.canDisableCommand("id", idHandler)
@@ -54,8 +54,8 @@ proc main() =
     bot.canDisableCommand("ping", pingHandler)
 
     # msg deleting
-    bot.canDisableCommand("purge", purgeHandler)
-    bot.canDisableCommand("del", delHandler)
+    bot.onCommand("purge", purgeHandler)
+    bot.onCommand("del", delHandler)
 
     # stickers
     bot.canDisableCommand("getsticker", getStickerHandler)
@@ -63,31 +63,31 @@ proc main() =
 
     # blacklist
     bot.onUpdate(blacklistListener)
-    bot.canDisableCommand("addblacklist", addBlacklistHandler)
-    bot.canDisableCommand("rmblacklist", rmBlacklistHandler)
+    bot.onCommand("addblacklist", addBlacklistHandler)
+    bot.onCommand("rmblacklist", rmBlacklistHandler)
     bot.canDisableCommand("getblacklist", getBlacklistHandler)
 
     # flood
     bot.onUpdate(floodListener)
-    bot.canDisableCommand("setflood", setFloodHandler)
-    bot.canDisableCommand("clearflood", clearFloodHandler)
-    bot.canDisableCommand("getflood", getFloodHandler)
+    bot.onCommand("setflood", setFloodHandler)
+    bot.onCommand("clearflood", clearFloodHandler)
+    bot.onCommand("getflood", getFloodHandler)
 
     # notes
-    bot.canDisableCommand("save", addNoteHandler)
+    bot.onCommand("save", addNoteHandler)
     bot.canDisableCommand("get", getNoteHandler)
-    bot.canDisableCommand("clear", rmNoteHandler)
+    bot.onCommand("clear", rmNoteHandler)
     bot.canDisableCommand("saved", savedNotesHandler)
 
     # global restrictions
     bot.onUpdate(grestrictListener)
-    bot.canDisableCommand("gban", gbanHandler)
-    bot.canDisableCommand("ungban", ungbanHandler)
-    bot.canDisableCommand("gmute", gmuteHandler)
-    bot.canDisableCommand("ungmute", ungmuteHandler)
+    bot.onCommand("gban", gbanHandler)
+    bot.onCommand("ungban", ungbanHandler)
+    bot.onCommand("gmute", gmuteHandler)
+    bot.onCommand("ungmute", ungmuteHandler)
 
     # rules
-    bot.canDisableCommand("setrules", setRulesHandler)
+    bot.onCommand("setrules", setRulesHandler)
     bot.canDisableCommand("rules", getRulesHandler)
 
     # intro
