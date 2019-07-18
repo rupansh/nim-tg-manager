@@ -16,7 +16,7 @@ import telebot, asyncdispatch, logging, options, telebot/utils
 
 
 # Simplified tg api procs
-template ourOnCommand*(bot: TeleBot, cmd: string, procName: untyped) =
+template canDisableCommand*(bot: TeleBot, cmd: string, procName: untyped) =
     cmdList &= cmd
     block procName:
         proc ourProc(b: TeleBot, c: Command) {.async.} =

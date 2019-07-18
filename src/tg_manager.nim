@@ -30,76 +30,76 @@ proc main() =
     let bot = newTeleBot(apiKey)
 
     # management
-    bot.ourOnCommand("promote", promoteHandler)
-    bot.ourOnCommand("demote", demoteHandler)
-    bot.ourOnCommand("pin", pinHandler)
-    bot.ourOnCommand("unpin", unpinHandler)
-    bot.ourOnCommand("invite", inviteHandler)
-    bot.ourOnCommand("admins", adminList)
+    bot.canDisableCommand("promote", promoteHandler)
+    bot.canDisableCommand("demote", demoteHandler)
+    bot.canDisableCommand("pin", pinHandler)
+    bot.canDisableCommand("unpin", unpinHandler)
+    bot.canDisableCommand("invite", inviteHandler)
+    bot.canDisableCommand("admins", adminList)
 
     # restrictictions
-    bot.ourOnCommand("ban", banHandler)
-    bot.ourOnCommand("tban", tbanHandler)
-    bot.ourOnCommand("banme", banMeHandler)
-    bot.ourOnCommand("unban", unbanHandler)
-    bot.ourOnCommand("kick", kickHandler)
-    bot.ourOnCommand("kickme", kickMeHandler)
-    bot.ourOnCommand("mute", muteHandler)
-    bot.ourOnCommand("tmute", tmuteHandler)
-    bot.ourOnCommand("unmute", unmuteHandler)
+    bot.canDisableCommand("ban", banHandler)
+    bot.canDisableCommand("tban", tbanHandler)
+    bot.canDisableCommand("banme", banMeHandler)
+    bot.canDisableCommand("unban", unbanHandler)
+    bot.canDisableCommand("kick", kickHandler)
+    bot.canDisableCommand("kickme", kickMeHandler)
+    bot.canDisableCommand("mute", muteHandler)
+    bot.canDisableCommand("tmute", tmuteHandler)
+    bot.canDisableCommand("unmute", unmuteHandler)
 
     # information
-    bot.ourOnCommand("id", idHandler)
-    bot.ourOnCommand("info", infoHandler)
-    bot.ourOnCommand("ping", pingHandler)
+    bot.canDisableCommand("id", idHandler)
+    bot.canDisableCommand("info", infoHandler)
+    bot.canDisableCommand("ping", pingHandler)
 
     # msg deleting
-    bot.ourOnCommand("purge", purgeHandler)
-    bot.ourOnCommand("del", delHandler)
+    bot.canDisableCommand("purge", purgeHandler)
+    bot.canDisableCommand("del", delHandler)
 
     # stickers
-    bot.ourOnCommand("getsticker", getStickerHandler)
-    bot.ourOnCommand("kang", kangHandler)
+    bot.canDisableCommand("getsticker", getStickerHandler)
+    bot.canDisableCommand("kang", kangHandler)
 
     # blacklist
     bot.onUpdate(blacklistListener)
-    bot.ourOnCommand("addblacklist", addBlacklistHandler)
-    bot.ourOnCommand("rmblacklist", rmBlacklistHandler)
-    bot.ourOnCommand("getblacklist", getBlacklistHandler)
+    bot.canDisableCommand("addblacklist", addBlacklistHandler)
+    bot.canDisableCommand("rmblacklist", rmBlacklistHandler)
+    bot.canDisableCommand("getblacklist", getBlacklistHandler)
 
     # flood
     bot.onUpdate(floodListener)
-    bot.ourOnCommand("setflood", setFloodHandler)
-    bot.ourOnCommand("clearflood", clearFloodHandler)
-    bot.ourOnCommand("getflood", getFloodHandler)
+    bot.canDisableCommand("setflood", setFloodHandler)
+    bot.canDisableCommand("clearflood", clearFloodHandler)
+    bot.canDisableCommand("getflood", getFloodHandler)
 
     # notes
-    bot.ourOnCommand("save", addNoteHandler)
-    bot.ourOnCommand("get", getNoteHandler)
-    bot.ourOnCommand("clear", rmNoteHandler)
-    bot.ourOnCommand("saved", savedNotesHandler)
+    bot.canDisableCommand("save", addNoteHandler)
+    bot.canDisableCommand("get", getNoteHandler)
+    bot.canDisableCommand("clear", rmNoteHandler)
+    bot.canDisableCommand("saved", savedNotesHandler)
 
     # global restrictions
     bot.onUpdate(grestrictListener)
-    bot.ourOnCommand("gban", gbanHandler)
-    bot.ourOnCommand("ungban", ungbanHandler)
-    bot.ourOnCommand("gmute", gmuteHandler)
-    bot.ourOnCommand("ungmute", ungmuteHandler)
+    bot.canDisableCommand("gban", gbanHandler)
+    bot.canDisableCommand("ungban", ungbanHandler)
+    bot.canDisableCommand("gmute", gmuteHandler)
+    bot.canDisableCommand("ungmute", ungmuteHandler)
 
     # rules
-    bot.ourOnCommand("setrules", setRulesHandler)
-    bot.ourOnCommand("rules", getRulesHandler)
+    bot.canDisableCommand("setrules", setRulesHandler)
+    bot.canDisableCommand("rules", getRulesHandler)
 
     # intro
-    bot.ourOnCommand("start", startHandler)
-    bot.ourOnCommand("help", helpHandler)
+    bot.canDisableCommand("start", startHandler)
+    bot.canDisableCommand("help", helpHandler)
 
     # memes
-    bot.ourOnCommand("owo", owoHandler)
-    bot.ourOnCommand("stretch", stretchHandler)
-    bot.ourOnCommand("vapor", vaporHandler)
-    bot.ourOnCommand("mock", mockHandler)
-    bot.ourOnCommand("zalgo", zalgoHandler)
+    bot.canDisableCommand("owo", owoHandler)
+    bot.canDisableCommand("stretch", stretchHandler)
+    bot.canDisableCommand("vapor", vaporHandler)
+    bot.canDisableCommand("mock", mockHandler)
+    bot.canDisableCommand("zalgo", zalgoHandler)
 
     # disable
     bot.onCommand("disable", disableHandler)
