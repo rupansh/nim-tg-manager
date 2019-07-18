@@ -30,6 +30,10 @@ proc disableHandler*(b: TeleBot, c: Command) {.async.} =
         var msg = newMessage(response.chat.id, text & " Disabled")
         msg.replyToMessageId = response.messageId
         discard await b.send(msg)
+    else:
+        var msg = newMessage(response.chat.id, "Can't disable this command!")
+        msg.replyToMessageId = response.messageId
+        discard await b.send(msg)
 
 proc enableHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
