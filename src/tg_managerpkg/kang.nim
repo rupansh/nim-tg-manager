@@ -57,7 +57,7 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
             let photoUrl = FILE_URL % @[b.token, photoFile.filePath.get]
             let buf = saveBuf(photoUrl)[0].readAll
             let buf2 = cast[seq[byte]](buf)
-            var img = loadImageFromMemory(buf2)
+            var img = loadImageFromMemory[ColorRGBA](buf2)
             if not (img.width <= 512 and img.height <= 512):
                 var ratio: float
                 var newWidth: int

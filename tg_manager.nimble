@@ -11,4 +11,4 @@ bin           = @["tg_manager"]
 # Dependencies
 
 requires "nim >= 0.20.0"
-requires "telebot >= 0.6.4", "redis >= 0.3.0", "imageman >= 0.2.1", "regex >= 0.11.2"
+requires "telebot >= 0.6.4", "redis >= 0.3.0", "imageman >= 0.5.1", "regex >= 0.11.2"
