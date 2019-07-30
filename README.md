@@ -8,7 +8,7 @@
 
 ### Usage:
 - clone this repository
-- make a config.ini while referrig to the example-config.ini
+- make a config.ini while referring to the example-config.ini
 - `nimble build -d:release`
 - `./tg_manager` (Make sure to start redis server on your host)
 
