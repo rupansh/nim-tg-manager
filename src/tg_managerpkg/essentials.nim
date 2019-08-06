@@ -27,7 +27,6 @@ template canDisableCommand*(bot: TeleBot, cmd: string, procName: untyped) =
                 await procName(b, c)
         bot.onCommand(cmd, ourProc)
 
-
 template canBotX(procName, canProc) =
     proc procName*(b: TeleBot, m: Message): Future[bool] {.async.} =
         let bot = await b.getMe()

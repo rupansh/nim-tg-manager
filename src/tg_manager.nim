@@ -94,6 +94,9 @@ proc main() =
     # intro
     bot.canDisableCommand("start", startHandler)
     bot.canDisableCommand("help", helpHandler)
+    bot.onUpdate(newUsrListener)
+    bot.onCommand("setwelcome", setwelcomeHandler)
+    bot.onCommand("clearwelcome", clearWelcomeHandler)
 
     # memes
     bot.canDisableCommand("owo", owoHandler)
