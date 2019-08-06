@@ -36,6 +36,7 @@ proc main() =
     bot.onCommand("unpin", unpinHandler)
     bot.canDisableCommand("invite", inviteHandler)
     bot.canDisableCommand("admins", adminList)
+    bot.onCommand("safemode", safeHandler)
 
     # restrictictions
     bot.onCommand("ban", banHandler)

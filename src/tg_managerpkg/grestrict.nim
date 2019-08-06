@@ -31,7 +31,8 @@ proc grestrictListener*(b: TeleBot, u: Update) {.async.} =
 
     let gmuteList = waitFor getRedisList("gmuted")
     if $response.fromUser.get.id in gmuteList:
-        discard await restrictChatMember(b, $response.chat.id, response.fromUser.get.id, canSendMessages = false)
+        let perms = ChatPermissions(canSendMessages : some(false))
+        discard await restrictChatMember(b, $response.chat.id, response.fromUser.get.id, perms)
         await appRedisList("gmute-groups-" & $response.fromUser.get.id, $response.chat.id)
 
 proc gbanHandler*(b: TeleBot, c: Command) {.async.} =
@@ -168,11 +169,11 @@ proc ungmuteHandler*(b: TeleBot, c: Command) {.async.} =
             if not (gmutedGroups == @[]):
                 for group in gmutedGroups:
                     if await canBotRestrict2(b, group):
-                        discard await restrictChatMember(b, group, parseInt(banid),
-                        canSendMessages = true,
-                        canSendMediaMessages = true,
-                        canSendOtherMessages = true,
-                        canAddWebPagePreviews = true)
+                        let perms = ChatPermissions(canSendMessages: some(true), 
+                        canSendMediaMessages: some(true),
+                        canSendOtherMessages: some(true),
+                        canAddWebPagePreviews: some(true))
+                        discard await restrictChatMember(b, group, parseInt(banid), perms)
 
             var msg = newMessage(response.chat.id, "User unGmuted!")
             msg.replyToMessageId = response.messageId

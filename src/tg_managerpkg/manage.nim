@@ -176,3 +176,34 @@ proc adminList*(b: TeleBot, c: Command) {.async.} =
     var msg = newMessage(response.chat.id, text)
     msg.replyToMessageId = response.messageId
     discard await b.send(msg)
+
+proc safeHandler*(b: TeleBot, c: Command) {.async.} =
+    let response = c.message
+    var failStr: string
+
+    if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
+        if not (await canBotInfo(b, response)):
+            var msg = newMessage(response.chat.id, "I can't change chat permissions!")
+            msg.replyToMessageId = response.messageId
+            discard await b.send(msg)
+            return
+
+        var perm: ChatPermissions
+        var mode: string
+        if ' ' in response.text.get:
+            if response.text.get.split(" ").len > 1:
+                mode = response.text.get.split(" ")[^1]
+                if mode == "on":
+                    perm = ChatPermissions(canSendMediaMessages: some(false))
+                elif mode == "off":
+                    perm = ChatPermissions(canSendMediaMessages: some(true))
+                else:
+                    var msg = newMessage(response.chat.id, "Invalid usage! please use on or off")
+                    msg.replyToMessageId = response.messageId
+                    discard await b.send(msg)
+                    return
+                    
+        discard await setChatPermissions(b, $response.chat.id, perm)
+        var msg = newMessage(response.chat.id, "Safe mode " & mode)
+        msg.replyToMessageId = response.messageId
+        discard await b.send(msg)

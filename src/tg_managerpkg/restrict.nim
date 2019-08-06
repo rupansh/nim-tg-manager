@@ -259,7 +259,8 @@ proc muteHandler*(b: TeleBot, c: Command) {.async.} =
         else:
             let user = await getChatMember(b, $response.chat.id.int, response.replyToMessage.get.fromUser.get().id)
             if user.canSendMessages.isNone or user.canSendMessages.get:
-                discard await restrictChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, canSendMessages = false)
+                let perms = ChatPermissions(canSendMessages: some(false))
+                discard await restrictChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, perms)
                 var msg = newMessage(response.chat.id, "User Muted!")
                 msg.replyToMessageId = response.messageId
                 discard await b.send(msg)
@@ -311,7 +312,8 @@ proc tmuteHandler*(b: TeleBot, c: Command) {.async.} =
         else:
             let user = await getChatMember(b, $response.chat.id.int, response.replyToMessage.get.fromUser.get().id)
             if user.canSendMessages.isNone or user.canSendMessages.get:
-                discard await restrictChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, untilDate = time, canSendMessages = false)
+                let perms = ChatPermissions(canSendMessages: some(false))
+                discard await restrictChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, perms, untilDate = time)
                 var msg = newMessage(response.chat.id, "User Muted for the next " & response.text.get.split(" ")[^1])
                 msg.replyToMessageId = response.messageId
                 discard await b.send(msg)
@@ -353,13 +355,13 @@ proc unmuteHandler*(b: TeleBot, c: Command) {.async.} =
             msg.replyToMessageId = response.messageId
             discard await b.send(msg)
         else:
-            let user = await getChatMember(b, $response.chat.id.int, response.replyToMessage.get.fromUser.get().id)
+            let user = await getChatMember(b, $response.chat.id.int, unmuteId)
             if not(user.canSendMessages.isNone or user.canSendMessages.get):
-                discard await restrictChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id,
-                canSendMessages = true,
-                canSendMediaMessages = true,
-                canSendOtherMessages = true,
-                canAddWebPagePreviews = true)
+                let perms = ChatPermissions(canSendMessages: some(true), 
+                canSendMediaMessages: some(true),
+                canSendOtherMessages: some(true),
+                canAddWebPagePreviews: some(true))
+                discard await restrictChatMember(b, $response.chat.id, unmuteId, perms)
                 var msg = newMessage(response.chat.id, "User Un-Muted!")
                 msg.replyToMessageId = response.messageId
                 discard await b.send(msg)

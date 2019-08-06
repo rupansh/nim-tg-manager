@@ -41,6 +41,7 @@ canBotX(canBotPin, canPinMessages)
 canBotX(canBotInvite, canInviteUsers)
 canBotX(canBotRestrict, canRestrictMembers)
 canBotX(canBotDelete, canDeleteMessages)
+canBotX(canBotInfo, canChangeInfo)
 
 proc canBotRestrict2*(b: TeleBot, chat: string): Future[bool] {.async.} =
     let bot = await b.getMe()
