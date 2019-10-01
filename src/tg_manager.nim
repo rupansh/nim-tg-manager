@@ -30,24 +30,24 @@ proc main() =
     let bot = newTeleBot(apiKey)
 
     # management
-    bot.onCommand("promote", promoteHandler)
-    bot.onCommand("demote", demoteHandler)
-    bot.onCommand("pin", pinHandler)
-    bot.onCommand("unpin", unpinHandler)
+    bot.ourOnCommand("promote", promoteHandler)
+    bot.ourOnCommand("demote", demoteHandler)
+    bot.ourOnCommand("pin", pinHandler)
+    bot.ourOnCommand("unpin", unpinHandler)
     bot.canDisableCommand("invite", inviteHandler)
     bot.canDisableCommand("admins", adminList)
-    bot.onCommand("safemode", safeHandler)
+    bot.ourOnCommand("safemode", safeHandler)
 
     # restrictictions
-    bot.onCommand("ban", banHandler)
-    bot.onCommand("tban", tbanHandler)
+    bot.ourOnCommand("ban", banHandler)
+    bot.ourOnCommand("tban", tbanHandler)
     bot.canDisableCommand("banme", banMeHandler)
-    bot.onCommand("unban", unbanHandler)
-    bot.onCommand("kick", kickHandler)
+    bot.ourOnCommand("unban", unbanHandler)
+    bot.ourOnCommand("kick", kickHandler)
     bot.canDisableCommand("kickme", kickMeHandler)
-    bot.onCommand("mute", muteHandler)
-    bot.onCommand("tmute", tmuteHandler)
-    bot.onCommand("unmute", unmuteHandler)
+    bot.ourOnCommand("mute", muteHandler)
+    bot.ourOnCommand("tmute", tmuteHandler)
+    bot.ourOnCommand("unmute", unmuteHandler)
 
     # information
     bot.canDisableCommand("id", idHandler)
@@ -55,48 +55,48 @@ proc main() =
     bot.canDisableCommand("ping", pingHandler)
 
     # msg deleting
-    bot.onCommand("purge", purgeHandler)
-    bot.onCommand("del", delHandler)
+    bot.ourOnCommand("purge", purgeHandler)
+    bot.ourOnCommand("del", delHandler)
 
     # stickers
     bot.canDisableCommand("getsticker", getStickerHandler)
     bot.canDisableCommand("kang", kangHandler)
 
     # blacklist
-    bot.onUpdate(blacklistListener)
-    bot.onCommand("addblacklist", addBlacklistHandler)
-    bot.onCommand("rmblacklist", rmBlacklistHandler)
+    bot.ourOnUpdate(blacklistListener)
+    bot.ourOnCommand("addblacklist", addBlacklistHandler)
+    bot.ourOnCommand("rmblacklist", rmBlacklistHandler)
     bot.canDisableCommand("getblacklist", getBlacklistHandler)
 
     # flood
-    bot.onUpdate(floodListener)
-    bot.onCommand("setflood", setFloodHandler)
-    bot.onCommand("clearflood", clearFloodHandler)
-    bot.onCommand("getflood", getFloodHandler)
+    bot.ourOnUpdate(floodListener)
+    bot.ourOnCommand("setflood", setFloodHandler)
+    bot.ourOnCommand("clearflood", clearFloodHandler)
+    bot.ourOnCommand("getflood", getFloodHandler)
 
     # notes
-    bot.onCommand("save", addNoteHandler)
+    bot.ourOnCommand("save", addNoteHandler)
     bot.canDisableCommand("get", getNoteHandler)
-    bot.onCommand("clear", rmNoteHandler)
+    bot.ourOnCommand("clear", rmNoteHandler)
     bot.canDisableCommand("saved", savedNotesHandler)
 
     # global restrictions
-    bot.onUpdate(grestrictListener)
-    bot.onCommand("gban", gbanHandler)
-    bot.onCommand("ungban", ungbanHandler)
-    bot.onCommand("gmute", gmuteHandler)
-    bot.onCommand("ungmute", ungmuteHandler)
+    bot.ourOnUpdate(grestrictListener)
+    bot.ourOnCommand("gban", gbanHandler)
+    bot.ourOnCommand("ungban", ungbanHandler)
+    bot.ourOnCommand("gmute", gmuteHandler)
+    bot.ourOnCommand("ungmute", ungmuteHandler)
 
     # rules
-    bot.onCommand("setrules", setRulesHandler)
+    bot.ourOnCommand("setrules", setRulesHandler)
     bot.canDisableCommand("rules", getRulesHandler)
 
     # intro
     bot.canDisableCommand("start", startHandler)
     bot.canDisableCommand("help", helpHandler)
-    bot.onUpdate(newUsrListener)
-    bot.onCommand("setwelcome", setwelcomeHandler)
-    bot.onCommand("clearwelcome", clearWelcomeHandler)
+    bot.ourOnUpdate(newUsrListener)
+    bot.ourOnCommand("setwelcome", setwelcomeHandler)
+    bot.ourOnCommand("clearwelcome", clearWelcomeHandler)
 
     # memes
     bot.canDisableCommand("owo", owoHandler)
@@ -106,9 +106,9 @@ proc main() =
     bot.canDisableCommand("zalgo", zalgoHandler)
 
     # disable
-    bot.onCommand("disable", disableHandler)
-    bot.onCommand("enable", enableHandler)
-    bot.onCommand("getdisabled", getDisabledHandler)
+    bot.ourOnCommand("disable", disableHandler)
+    bot.ourOnCommand("enable", enableHandler)
+    bot.ourOnCommand("getdisabled", getDisabledHandler)
 
     bot.poll(timeout=500)
 

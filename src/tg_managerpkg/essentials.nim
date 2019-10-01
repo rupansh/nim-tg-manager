@@ -16,16 +16,43 @@ import telebot, asyncdispatch, logging, options, telebot/utils
 
 
 # Simplified tg api procs
-template canDisableCommand*(bot: TeleBot, cmd: string, procName: untyped) =
+template ourOnCommand*(bot: TeleBot, cmd: string, procName) =
+    block:
+        proc ourProc2(b: TeleBot, c: Command) {.async.} =
+            try:
+                await procName(b, c)
+            except:
+                let
+                    e = getCurrentException()
+                    msg = getCurrentExceptionMsg()
+                let sendMsg = "Got Exception With Msg " & msg
+                echo sendMsg
+                discard await b.sendMessage(dumpChannel, sendMsg)
+        bot.onCommand(cmd, ourProc2)
+
+template ourOnUpdate*(bot: TeleBot, procName) =
+    block:
+        proc ourProc2(b: TeleBot, u: Update) {.async.} =
+            try:
+                await procName(b, u)
+            except:
+                let
+                    e = getCurrentException()
+                    msg = getCurrentExceptionMsg()
+                let sendMsg = "Got Exception With Msg " & msg
+                discard await b.sendMessage(dumpChannel, sendMsg)
+            bot.onUpdate(ourProc2)
+
+template canDisableCommand*(bot: TeleBot, cmd: string, procName) =
     cmdList &= cmd
-    block procName:
+    block:
         proc ourProc(b: TeleBot, c: Command) {.async.} =
             let ourName = cmd
             let response = c.message
             let disabled = await getRedisList("disabled" & $response.chat.id.int)
             if not (ourName in disabled):
                 await procName(b, c)
-        bot.onCommand(cmd, ourProc)
+        bot.ourOnCommand(cmd, ourProc)
 
 template canBotX(procName, canProc) =
     proc procName*(b: TeleBot, m: Message): Future[bool] {.async.} =
@@ -113,6 +140,20 @@ proc sendDocument*(b: TeleBot, chatId: int, document: telebot.File, replyToMessa
 
     let res = await makeRequest(b, endpoint % b.token, data)
     result = unmarshal(res, Message)
+
+proc sendMessage*(b: TeleBot, chat: string, message: string, parseMode = "", replyToMessageId = 0): Future[Message] {.async.} =
+    END_POINT("sendMessage")
+    var data = newMultipartData()
+    data["chat_id"] = chat
+    data["text"] = message
+    if parseMode != "":
+        data["parse_mode"] = parseMode
+    if replyToMessageId != 0:
+        data["reply_to_message_id"] = $replyToMessageId
+
+    let res = await makeRequest(b, endpoint % b.token, data)
+    result = unmarshal(res, Message)
+
 
 proc ourUploadStickerFile*(b: TeleBot, userId: int, stickId: string): Future[telebot.File] {.async.} =
     END_POINT("uploadStickerFile")
