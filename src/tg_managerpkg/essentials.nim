@@ -28,6 +28,7 @@ template ourOnCommand*(bot: TeleBot, cmd: string, procName) =
                 let sendMsg = "Got Exception With Msg " & msg
                 echo sendMsg
                 discard await b.sendMessage(dumpChannel, sendMsg)
+
         bot.onCommand(cmd, ourProc2)
 
 template ourOnUpdate*(bot: TeleBot, procName) =
@@ -41,7 +42,8 @@ template ourOnUpdate*(bot: TeleBot, procName) =
                     msg = getCurrentExceptionMsg()
                 let sendMsg = "Got Exception With Msg " & msg
                 discard await b.sendMessage(dumpChannel, sendMsg)
-            bot.onUpdate(ourProc2)
+
+        bot.onUpdate(ourProc2)
 
 template canDisableCommand*(bot: TeleBot, cmd: string, procName) =
     cmdList &= cmd
@@ -52,6 +54,7 @@ template canDisableCommand*(bot: TeleBot, cmd: string, procName) =
             let disabled = await getRedisList("disabled" & $response.chat.id.int)
             if not (ourName in disabled):
                 await procName(b, c)
+
         bot.ourOnCommand(cmd, ourProc)
 
 template canBotX(procName, canProc) =
@@ -153,7 +156,6 @@ proc sendMessage*(b: TeleBot, chat: string, message: string, parseMode = "", rep
 
     let res = await makeRequest(b, endpoint % b.token, data)
     result = unmarshal(res, Message)
-
 
 proc ourUploadStickerFile*(b: TeleBot, userId: int, stickId: string): Future[telebot.File] {.async.} =
     END_POINT("uploadStickerFile")
