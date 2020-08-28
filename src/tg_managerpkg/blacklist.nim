@@ -8,7 +8,7 @@ import essentials
 import redishandling
 from strutils import split, join
 
-import telebot, asyncdispatch, logging, options
+import telebot, asyncdispatch, options
 
 
 proc blacklistListener*(b: TeleBot, u: Update) {.async.} =
@@ -41,9 +41,7 @@ proc addBlacklistHandler*(b: TeleBot, c: Command) {.async.} =
         if not (text in blacklist):
             await appRedisList("blacklist" & $response.chat.id.int, text)
 
-        var msg = newMessage(response.chat.id, text & " Blacklisted!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, text & " Blacklisted!", replyToMessageId = response.messageId)
 
 proc rmBlacklistHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
@@ -58,16 +56,11 @@ proc rmBlacklistHandler*(b: TeleBot, c: Command) {.async.} =
         let blacklist = waitFor getRedisList("blacklist" & $response.chat.id.int)
         if text in blacklist:
             await rmRedisList("blacklist" & $response.chat.id.int, text)
-            var msg = newMessage(response.chat.id, text & " Removed!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            discard await b.sendMessage(response.chat.id, text & " Removed!", replyToMessageId = response.messageId)
 
 proc getBlacklistHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
 
     if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
         let blacklist = waitFor getRedisList("blacklist" & $response.chat.id.int)
-        var msg = newMessage(response.chat.id.int, "***Blacklisted Words:***\n" & blacklist.join("\n"))
-        msg.replyToMessageId = response.messageId
-        msg.parseMode = "markdown"
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id,  "***Blacklisted Words:***\n" & blacklist.join("\n"), parseMode = "markdown", replyToMessageId = response.messageId)

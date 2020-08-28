@@ -4,3 +4,6 @@ tg_manager
 
 # config
 config.ini
+
+# log
+*.log

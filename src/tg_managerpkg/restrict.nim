@@ -4,23 +4,20 @@
 # you may not use this file except in compliance with the License.
 #
 
-import config
 import essentials
 from strutils import split, parseInt
 import times
 
-import telebot, asyncdispatch, logging, options
+import telebot, asyncdispatch, options
 
 
 proc banHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
     let bot = await b.getMe()
     var banId = 0
-    var failStr = "Reply to a user to ban them"
+    var msgTxt = "Reply to a user to ban them"
     if not (await canBotRestrict(b, response)):
-        var msg = newMessage(response.chat.id, "I can't ban users!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "I can't ban users!", replyToMessageId = response.messageId)
         return
 
     if response.replyToMessage.isSome:
@@ -30,42 +27,34 @@ proc banHandler*(b: TeleBot, c: Command) {.async.} =
             banId = parseInt(response.text.get.split(" ")[^1])
             if not (await isUserInChat(b, response.chat.id.int, banId)):
                 banId = 0
-                failStr = "Invalid user id"
+                msgTxt = "Invalid user id"
 
     if banId == bot.id:
         banId = 0
-        failStr = "I am not banning myself :^)"
+        msgTxt = "I am not banning myself :^)"
     elif await isUserAdm(b, response.chat.id.int, banId):
         banId = 0
-        failStr = "I can't touch this guy :^("
+        msgTxt = "I can't touch this guy :^("
 
     if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
-        if banId == 0:
-            var msg = newMessage(response.chat.id, failStr)
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
-        else:
+        if banId != 0:
             discard await kickChatMember(b, $response.chat.id, banId, (toUnix(getTime()) - 31).int)
-            var msg = newMessage(response.chat.id, "They won't be bugging you in this chat anymore!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = "They won't be bugging you in this chat anymore!"
     else:
-        var msg = newMessage(response.chat.id, "You aren't adm :^(")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        msgTxt = "You aren't adm :^("
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc tbanHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
     let bot = await b.getMe()
     var banId = 0
-    var failStr = "Reply to a user to tban them!"
+    var msgTxt = "Reply to a user to tban them!"
     if not (await canBotRestrict(b, response)):
-        var msg = newMessage(response.chat.id, "I can't ban users!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "I can't ban users!", replyToMessageId = response.messageId)
         return
 
-    var time = getTime(b, response)
+    var time = await getTime(b, response)
     if time == 0:
         return
 
@@ -77,57 +66,43 @@ proc tbanHandler*(b: TeleBot, c: Command) {.async.} =
                 banId = parseInt(response.text.get.split(" ")[^1])
                 if not (await isUserInChat(b, response.chat.id.int, banId)):
                     banId = 0
-                    failStr = "Invalid user id"
+                    msgTxt = "Invalid user id"
     
         if banId == bot.id:
             banId = 0
-            failStr = "I am not banning myself :^)"
+            msgTxt = "I am not banning myself :^)"
         elif await isUserAdm(b, response.chat.id.int, banId):
             banId = 0
-            failStr = "I can't touch this guy :^("
+            msgTxt = "I can't touch this guy :^("
 
-        if banId == 0:
-            var msg = newMessage(response.chat.id, failStr)
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
-        else:
-            discard await kickChatMember(b, $response.chat.id, banId, time)
-            var msg = newMessage(response.chat.id, "They won't be bugging you in this chat for the next " & response.text.get.split(" ")[^1])
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+        if banId != 0:
+            discard await b.kickChatMember($response.chat.id, banId, time)
+            msgTxt = "They won't be bugging you in this chat for the next " & response.text.get.split(" ")[^1]
     else:
-        var msg = newMessage(response.chat.id, "You aren't adm :^(")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        msgTxt = "You aren't adm :^("
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc banMeHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
     if not (await canBotRestrict(b, response)):
-        var msg = newMessage(response.chat.id, "I can't ban users!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "I can't ban users!", replyToMessageId = response.messageId)
         return
 
     if await isUserAdm(b, response.chat.id.int, response.replyToMessage.get.fromUser.get().id):
-        var msg = newMessage(response.chat.id, "I can't touch you :^(")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "I can't touch you :^(", replyToMessageId =response.messageId)
         return
 
     discard await kickChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, toUnix(getTime()).int - 31)
-    var msg = newMessage(response.chat.id, "Get Out lol")
-    msg.replyToMessageId = response.messageId
-    discard await b.send(msg)
+    discard await b.sendMessage(response.chat.id, "Get Out lol", replyToMessageId = response.messageId)
 
 proc unbanHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
     let bot = await b.getMe()
     var unbanId = 0
-    var failStr = "Reply to a user to unban them"
+    var msgTxt = "Reply to a user to unban them"
     if not (await canBotRestrict(b, response)):
-        var msg = newMessage(response.chat.id, "I can't unban users!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "I can't unban users!", replyToMessageId = response.messageId)
         return
 
     if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
@@ -140,38 +115,30 @@ proc unbanHandler*(b: TeleBot, c: Command) {.async.} =
                     let usr = await getChatMember(b, $response.chat.id.int, unbanId)
                     if usr.untilDate.isNone:
                         unbanId = 0
-                        failStr = "He's already in the group"
+                        msgTxt = "He's already in the group"
                 except IOError:
                     unbanId = 0
-                    failStr = "Invalid user id"
+                    msgTxt = "Invalid user id"
     
         if unbanId == bot.id:
             unbanId = 0
-            failStr = "Why'd i unban myself when i am here :v"
+            msgTxt = "Why'd i unban myself when i am here :v"
 
-        if unbanId == 0:
-            var msg = newMessage(response.chat.id, failStr)
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
-        else:
+        if unbanId != 0:
             discard await unbanChatMember(b, $response.chat.id, unbanId)
-            var msg = newMessage(response.chat.id, "Unbanned!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = "Unbanned!"
     else:
-        var msg = newMessage(response.chat.id, "You aren't adm :^(")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        msgTxt = "You aren't adm :^("
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc kickHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
     let bot = await b.getMe()
     var kickId = 0
-    var failStr = "Reply to a user to kick them!"
+    var msgTxt = "Reply to a user to kick them!"
     if not (await canBotRestrict(b, response)):
-        var msg = newMessage(response.chat.id, "I can't kick users!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "I can't kick users!", replyToMessageId = response.messageId)
         return
 
     if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
@@ -181,58 +148,44 @@ proc kickHandler*(b: TeleBot, c: Command) {.async.} =
             if response.text.get.split(" ").len > 1:
                 kickId = parseInt(response.text.get.split(" ")[^1])
                 if not (await isUserInChat(b, response.chat.id.int, kickId)):
-                    kicKId = 0
-                    failStr = "Invalid user id"
+                    kickId = 0
+                    msgTxt = "Invalid user id"
     
         if kickId == bot.id:
             kickId = 0
-            failStr = "I am not kicking myself :^)"
+            msgTxt = "I am not kicking myself :^)"
         elif await isUserAdm(b, response.chat.id.int, kickId):
             kickId = 0
-            failStr = "I can't touch this guy :^("
+            msgTxt = "I can't touch this guy :^("
 
-        if kickId == 0:
-            var msg = newMessage(response.chat.id, failStr)
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
-        else:
-            discard await kickChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, toUnix(getTime()).int + 1)
-            var msg = newMessage(response.chat.id, "Kicked!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+        if kickId != 0:
+            discard await kickChatMember(b, $response.chat.id, kickId, toUnix(getTime()).int + 1)
+            msgTxt = "Kicked!"
     else:
-        var msg = newMessage(response.chat.id, "You aren't adm :^(")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        msgTxt = "You aren't adm :^("
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc kickMeHandler*(b: TeleBot, c: Command) {.async.} =
         let response = c.message
         if not (await canBotRestrict(b, response)):
-            var msg = newMessage(response.chat.id, "I can't kick users!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            discard await b.sendMessage(response.chat.id, "I can't kick users!", replyToMessageId = response.messageId)
             return
 
         if await isUserAdm(b, response.chat.id.int, response.replyToMessage.get.fromUser.get().id):
-            var msg = newMessage(response.chat.id, "I can't touch you :^(")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            discard await b.sendMessage(response.chat.id, "I can't touch you :^(", replyToMessageId = response.messageId)
             return
 
         discard await kickChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, toUnix(getTime()).int + 1)
-        var msg = newMessage(response.chat.id, "Get Out lol")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "Get Out lol", replyToMessageId = response.messageId)
 
 proc muteHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
     let bot = await b.getMe()
     var muteId = 0
-    var failStr = "Reply to a user to mute them!"
+    var msgTxt = "Reply to a user to mute them!"
     if not (await canBotRestrict(b, response)):
-        var msg = newMessage(response.chat.id, "I can't mute users!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "I can't mute users!", replyToMessageId = response.messageId)
         return
 
     if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
@@ -243,48 +196,38 @@ proc muteHandler*(b: TeleBot, c: Command) {.async.} =
                 muteId = parseInt(response.text.get.split(" ")[^1])
                 if not (await isUserInChat(b, response.chat.id.int, muteId)):
                     muteId = 0
-                    failStr = "Invalid user id"
+                    msgTxt = "Invalid user id"
     
         if muteId == bot.id:
             muteId = 0
-            failStr = "I am not muting myself :^)"
+            msgTxt = "I am not muting myself :^)"
         elif await isUserAdm(b, response.chat.id.int, muteId):
             muteId = 0
-            failStr = "I can't touch this guy :^("
+            msgTxt = "I can't touch this guy :^("
 
-        if muteId == 0:
-            var msg = newMessage(response.chat.id, failStr)
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
-        else:
+        if muteId != 0:
             let user = await getChatMember(b, $response.chat.id.int, response.replyToMessage.get.fromUser.get().id)
             if user.canSendMessages.isNone or user.canSendMessages.get:
                 let perms = ChatPermissions(canSendMessages: some(false))
                 discard await restrictChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, perms)
-                var msg = newMessage(response.chat.id, "User Muted!")
-                msg.replyToMessageId = response.messageId
-                discard await b.send(msg)
+                msgTxt = "User Muted!"
             else:
-                var msg = newMessage(response.chat.id, "User is already muted!")
-                msg.replyToMessageId = response.messageId
-                discard await b.send(msg)
+                msgTxt = "User is already muted!"
     else:
-        var msg = newMessage(response.chat.id, "You aren't Adm! :^(")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        msgTxt = "You aren't Adm! :^("
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc tmuteHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
     let bot = await b.getMe()
     var muteId = 0
-    var failStr = "Reply to a user to tmute them!"
+    var msgTxt = "Reply to a user to tmute them!"
     if not (await canBotRestrict(b, response)):
-        var msg = newMessage(response.chat.id, "I can't mute users!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "I can't mute users!", replyToMessageId = response.messageId)
         return
 
-    var time = getTime(b, response)
+    var time = await getTime(b, response)
     if time == 0:
         return
 
@@ -296,44 +239,34 @@ proc tmuteHandler*(b: TeleBot, c: Command) {.async.} =
                 muteId = parseInt(response.text.get.split(" ")[^1])
                 if not (await isUserInChat(b, response.chat.id.int, muteId)):
                     muteId = 0
-                    failStr = "Invalid user id"
+                    msgTxt = "Invalid user id"
     
         if muteId == bot.id:
             muteId = 0
-            failStr = "I am not muting myself :^)"
+            msgTxt = "I am not muting myself :^)"
         elif await isUserAdm(b, response.chat.id.int, muteId):
             muteId = 0
-            failStr = "I can't touch this guy :^("
+            msgTxt = "I can't touch this guy :^("
 
-        if muteId == 0:
-            var msg = newMessage(response.chat.id, failStr)
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
-        else:
+        if muteId != 0:
             let user = await getChatMember(b, $response.chat.id.int, response.replyToMessage.get.fromUser.get().id)
             if user.canSendMessages.isNone or user.canSendMessages.get:
                 let perms = ChatPermissions(canSendMessages: some(false))
                 discard await restrictChatMember(b, $response.chat.id, response.replyToMessage.get.fromUser.get().id, perms, untilDate = time)
-                var msg = newMessage(response.chat.id, "User Muted for the next " & response.text.get.split(" ")[^1])
-                msg.replyToMessageId = response.messageId
-                discard await b.send(msg)
+                msgTxt = "User Muted for the next " & response.text.get.split(" ")[^1]
             else:
-                var msg = newMessage(response.chat.id, "User is already muted!")
-                msg.replyToMessageId = response.messageId
-                discard await b.send(msg)
+                msgTxt = "User is already muted!"
     else:
-        var msg = newMessage(response.chat.id, "You aren't Adm :^(")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        msgTxt = "You aren't Adm :^("
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc unmuteHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
     var unmuteId = 0
-    var failStr = "Reply to a user to unmute them!"
+    var msgTxt = "Reply to a user to unmute them!"
     if not (await canBotRestrict(b, response)):
-        var msg = newMessage(response.chat.id, "I can't unmute users!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "I can't unmute users!", replyToMessageId = response.messageId)
         return
 
     if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
@@ -344,17 +277,13 @@ proc unmuteHandler*(b: TeleBot, c: Command) {.async.} =
                 unmuteId = parseInt(response.text.get.split(" ")[^1])
                 if not (await isUserInChat(b, response.chat.id.int, unmuteId)):
                     unmuteId = 0
-                    failStr = "Invalid user id"
+                    msgTxt = "Invalid user id"
     
         if await isUserAdm(b, response.chat.id.int, unmuteId):
             unmuteId = 0
-            failStr = "This guy can't be muted lol! so no need to unmute"
+            msgTxt = "This guy can't be muted lol! so no need to unmute"
 
-        if unmuteId == 0:
-            var msg = newMessage(response.chat.id, failStr)
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
-        else:
+        if unmuteId != 0:
             let user = await getChatMember(b, $response.chat.id.int, unmuteId)
             if not(user.canSendMessages.isNone or user.canSendMessages.get):
                 let perms = ChatPermissions(canSendMessages: some(true), 
@@ -362,14 +291,10 @@ proc unmuteHandler*(b: TeleBot, c: Command) {.async.} =
                 canSendOtherMessages: some(true),
                 canAddWebPagePreviews: some(true))
                 discard await restrictChatMember(b, $response.chat.id, unmuteId, perms)
-                var msg = newMessage(response.chat.id, "User Un-Muted!")
-                msg.replyToMessageId = response.messageId
-                discard await b.send(msg)
+                msgTxt = "User Un-Muted!"
             else:
-                var msg = newMessage(response.chat.id, "User was never muted")
-                msg.replyToMessageId = response.messageId
-                discard await b.send(msg)
+                msgTxt = "User was never muted"
     else:
-        var msg = newMessage(response.chat.id, "You aren't Adm :^(")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        msgTxt = "You aren't Adm :^("
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)

@@ -110,10 +110,14 @@ proc main() =
     bot.ourOnCommand("enable", enableHandler)
     bot.ourOnCommand("getdisabled", getDisabledHandler)
 
-    bot.poll(timeout=500)
-
+    # file logger
+    addHandler(fileLog)
     # save redis server when we are done
     addQuitProc(saveRedis)
+
+    echo "Nim TG Bot is Up!"
+
+    bot.poll(timeout=100)
 
 when isMainModule:
     main()

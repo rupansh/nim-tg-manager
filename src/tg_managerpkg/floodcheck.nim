@@ -11,7 +11,7 @@ from strutils import split, parseInt
 import times
 from unicode import isAlpha
 
-import telebot, asyncdispatch, logging, options
+import telebot, asyncdispatch, options
 
 
 # slightly experimental as i have noticed some unexpected behaviour
@@ -37,9 +37,7 @@ proc floodListener*(b: Telebot, u: Update) {.async.} =
             await setRedisKey("currflood" & $response.chat.id.int, $response.fromUser.get.id & " 1")
 
         if (not await isUserAdm(b, response.chat.id.int, response.fromUser.get.id)) and parseInt(currFlood.split(" ")[1]) > parseInt(limit):
-            var msg = newMessage(response.chat.id, "Get out of here!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            discard await b.sendMessage(response.chat.id, "Get out of here", replyToMessageId = response.messageId)
 
             discard await kickChatMember(b, $response.chat.id, response.fromUser.get().id, toUnix(getTime()).int - 31)
 
@@ -57,9 +55,7 @@ proc setFloodHandler*(b: TeleBot, c: Command) {.async.} =
 
         await setRedisKey("floodlimit" & $response.chat.id.int, text)
 
-        var msg = newMessage(response.chat.id.int, "Flood limit set to " & text)
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "Flood limit set to " & text, replyToMessageId = response.messageId)
 
 proc clearFloodHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
@@ -71,9 +67,7 @@ proc clearFloodHandler*(b: TeleBot, c: Command) {.async.} =
         else:
             await clearRedisKey("floodlimit" & $response.chat.id.int)
 
-        var msg = newMessage(response.chat.id, "Cleared flood limit!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "Cleared flood limit!", replyToMessageId = response.messageId)
 
 proc getFloodHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
@@ -83,6 +77,4 @@ proc getFloodHandler*(b: TeleBot, c: Command) {.async.} =
         if limit == redisNil:
             return
         else:
-            var msg = newMessage(response.chat.id.int, "Current flood limit: " & limit)
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            discard await b.sendMessage(response.chat.id, "Current flood limit: " & limit, replyToMessageId = response.messageId)

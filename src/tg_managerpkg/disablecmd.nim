@@ -9,7 +9,7 @@ import essentials
 import redishandling
 import strutils
 
-import telebot, asyncdispatch, logging, options
+import telebot, asyncdispatch, options
 
 
 proc disableHandler*(b: TeleBot, c: Command) {.async.} =
@@ -27,13 +27,9 @@ proc disableHandler*(b: TeleBot, c: Command) {.async.} =
     if text in cmdList and not (text in disabled):
         await appRedisList("disabled" & $response.chat.id.int, text)
 
-        var msg = newMessage(response.chat.id, text & " Disabled")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, text & " Disabled", replyToMessageId = response.messageId)
     else:
-        var msg = newMessage(response.chat.id, "Can't disable this command!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, text & "Can't disable this command!", replyToMessageId = response.messageId)
 
 proc enableHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
@@ -50,16 +46,11 @@ proc enableHandler*(b: TeleBot, c: Command) {.async.} =
     if text in disabled:
         await rmRedisList("disabled" & $response.chat.id.int, text)
 
-        var msg = newMessage(response.chat.id, text & " Enabled")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, text & " Enabled", replyToMessageId = response.messageId)
 
 proc getDisabledHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
 
     if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
         let disabled = waitFor getRedisList("disabled" & $response.chat.id.int)
-        var msg = newMessage(response.chat.id.int, "***disabled cmds:***\n" & disabled.join("\n"))
-        msg.replyToMessageId = response.messageId
-        msg.parseMode = "markdown"
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "***disabled cmds:***\n" & disabled.join("\n"), parseMode = "markdown", replyToMessageId = response.messageId)

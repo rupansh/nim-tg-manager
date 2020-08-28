@@ -11,10 +11,9 @@ import imageman
 import streams
 import strformat
 import strutils
-import unicode
 import xmltree
 
-import telebot, asyncdispatch, logging, options, telebot/utils
+import telebot, asyncdispatch, options, telebot/private/utils
 
 
 proc getStickerHandler*(b: TeleBot, c: Command) {.async.} =
@@ -23,9 +22,7 @@ proc getStickerHandler*(b: TeleBot, c: Command) {.async.} =
         let sticker = await getFile(b, response.replyToMessage.get.sticker.get.fileId)
         discard await sendDocument(b, response.chat.id.int, sticker, response.messageId, forceDoc = true, "sticker.png")
     else:
-        var msg = newMessage(response.chat.id.int, "Reply to a sticker to get it!")
-        msg.replyToMessageId = response.messageId
-        b.send(msg)
+        discard await b.sendMessage(response.chat.id, "Reply to a sticker to get it!", replyToMessageId = response.messageId)
 
 proc kangHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
@@ -56,8 +53,8 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
             let photoFile = await getFile(b, response.replyToMessage.get.photo.get[^1].fileId)
             let photoUrl = FILE_URL % @[b.token, photoFile.filePath.get]
             let buf = saveBuf(photoUrl)[0].readAll
-            let buf2 = cast[seq[byte]](buf)
-            var img = loadImageFromMemory[ColorRGBAU](buf2)
+            let buf2 = cast[seq[char]](buf)
+            var img = readImage[ColorRGBAU](buf2)
             if not (img.width <= 512 and img.height <= 512):
                 var ratio: float
                 var newWidth: int
@@ -72,11 +69,9 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
                     newHeight = 512
                 img = img.resizedNN(newWidth, newHeight)
             let pngImg = writePNG(img)
-            sticker = await uploadStickerFileFromBuf(b, response.fromUser.get.id, pngImg)
+            sticker = await uploadStickerFileFromBuf(b, response.fromUser.get.id, cast[seq[byte]](pngImg))
         else:
-            var msg = newMessage(response.chat.id, "Reply to a sticker/image to kang it!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            discard await b.sendMessage(response.chat.id, "Reply to a sticker/image to kang it!")
             return
 
         var client = newAsyncHttpClient()
@@ -86,7 +81,6 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
 
         var succs = false
         if "StickerSet" in stickText:
-            echo stickText
             try:
                 succs = await ourCreateNewStickerSet(b, response.fromUser.get.id, packname, title, sticker.fileId, emoji)
             except IOError as ioerr:
@@ -99,12 +93,5 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
                 if "500" in ioerr.msg:
                     succs = true
 
-        if succs:
-            var msg = newMessage(response.chat.id, fmt"Added sticker to your [pack](t.me/addstickers/{packname})")
-            msg.replyToMessageId = response.messageId
-            msg.parseMode = "markdown"
-            discard await b.send(msg)
-        else:
-            var msg = newMessage(response.chat.id, "Unknown Problem occured!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+        var msgTxt = if succs: fmt"Added sticker to your [pack](t.me/addstickers/{packname})" else: "Unknown Problem occured!"
+        discard await b.sendMessage(response.chat.id, msgTxt, parseMode = "markdown", replyToMessageId = response.messageId)

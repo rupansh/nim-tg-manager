@@ -10,7 +10,7 @@ import redishandling
 from strutils import split, parseInt
 import times
 
-import telebot, asyncdispatch, logging, options
+import telebot, asyncdispatch, options
 
 
 proc grestrictListener*(b: TeleBot, u: Update) {.async.} =
@@ -59,20 +59,15 @@ proc gbanHandler*(b: TeleBot, c: Command) {.async.} =
         if not (banid in gbanList):
             await appRedisList("gbanned", banid)
 
-            var msg = newMessage(response.chat.id, "Gbanned this tard!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            discard await b.sendMessage(response.chat.id, "Gbanned this tard!", replyToMessageId = response.messageId)
         else:
-            var msg = newMessage(response.chat.id, "This tard is already gbanned!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            discard await b.sendMessage(response.chat.id, "This tard is already gbanned!", replyToMessageId = response.messageId)
     else:
-        var msg = newMessage(response.chat.id, "Only sudos can execute this command!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "Only sudos can execute this command!", replyToMessageId = response.messageId)
 
 proc ungbanHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
+    var msgTxt: string
 
     if response.fromUser.get.id in sudos or $response.fromUser.get.id == owner:
         var banid: string
@@ -96,21 +91,17 @@ proc ungbanHandler*(b: TeleBot, c: Command) {.async.} =
                 for group in gbannedGroups:
                     if await canBotRestrict2(b, group):
                         discard await unbanChatMember(b, group, parseInt(banid))
-
-            var msg = newMessage(response.chat.id, "User unGbanned!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = "User unGbanned"
         else:
-            var msg = newMessage(response.chat.id, "This guy was never Gbanned!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = "Only sudos can execute this command!"
     else:
-        var msg = newMessage(response.chat.id, "Only sudos can execute this command!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        msgTxt = "Only sudos can execute this command!"
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc gmuteHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
+    var msgTxt: string
 
     if response.fromUser.get.id in sudos or $response.fromUser.get.id == owner:
         let bot = await b.getMe()
@@ -132,21 +123,17 @@ proc gmuteHandler*(b: TeleBot, c: Command) {.async.} =
 
         if not (banid in gbanList):
             await appRedisList("gmuted", banid)
-
-            var msg = newMessage(response.chat.id, "Gmuted this tard!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = "Gmuted this tard!"
         else:
-            var msg = newMessage(response.chat.id, "This tard is already gmuted!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = "This tard is already gmuted!"
     else:
-        var msg = newMessage(response.chat.id, "Only sudos can execute this command!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        msgTxt = "Only sudos can execute this command!"
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc ungmuteHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
+    var msgTxt: string
 
     if response.fromUser.get.id in sudos or $response.fromUser.get.id == owner:
         var banid: string
@@ -175,14 +162,10 @@ proc ungmuteHandler*(b: TeleBot, c: Command) {.async.} =
                         canAddWebPagePreviews: some(true))
                         discard await restrictChatMember(b, group, parseInt(banid), perms)
 
-            var msg = newMessage(response.chat.id, "User unGmuted!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = "User unGmuted!"
         else:
-            var msg = newMessage(response.chat.id, "This guy was never Gmuted!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = "This guy was never Gmuted!"
     else:
-        var msg = newMessage(response.chat.id, "Only sudos can execute this command!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        msgTxt = "Only sudos can execute this command!"
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)

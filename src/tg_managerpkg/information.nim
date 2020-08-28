@@ -9,7 +9,7 @@ import times
 import config
 from strutils import parseInt
 
-import telebot, asyncdispatch, logging, options
+import telebot, asyncdispatch, options
 
 
 proc idHandler*(b: TeleBot, c: Command) {.async.} =
@@ -23,9 +23,7 @@ proc idHandler*(b: TeleBot, c: Command) {.async.} =
     else:
         sendid = "Group id: " & $response.chat.id
 
-    var msg = newMessage(response.chat.id.int, sendid)
-    msg.replyToMessageId = response.messageId
-    discard await b.send(msg)
+    discard await b.sendMessage(response.chat.id, sendid, replyToMessageId = response.messageId)
 
 proc infoHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
@@ -54,10 +52,7 @@ proc infoHandler*(b: TeleBot, c: Command) {.async.} =
     if user.username.isSome:
         txt = txt & "Username:  @" & user.username.get & "\n"
 
-    var msg = newMessage(response.chat.id.int, txt)
-    msg.replyToMessageId = response.messageId
-    msg.parseMode = "markdown"
-    discard b.send(msg)
+    discard b.sendMessage(response.chat.id, txt, parseMode= "markdown", replyToMessageId = response.messageId)
 
 proc pingHandler*(b: TeleBot, c: Command) {.async.} =
     let socket = newSocket()
@@ -66,7 +61,4 @@ proc pingHandler*(b: TeleBot, c: Command) {.async.} =
     let avgTime = ((cpuTime() - time)*1000).int
 
     let response = c.message
-    var msg = newMessage(response.chat.id.int, "***PONG!***\nPing: " & $avgTime & "ms")
-    msg.replyToMessageId = response.messageId
-    msg.parseMode = "markdown"
-    discard b.send(msg)
+    discard b.sendMessage(response.chat.id, "***PONG!***\nPing: " & $avgTime & "ms", parseMode = "markdown", replyToMessageId = response.messageId)

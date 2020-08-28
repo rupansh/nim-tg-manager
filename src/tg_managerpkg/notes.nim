@@ -9,7 +9,7 @@ import essentials
 import redishandling
 import strutils
 
-import telebot, asyncdispatch, logging, options
+import telebot, asyncdispatch, options
 
 
 proc addNoteHandler*(b: TeleBot, c: Command) {.async.} =
@@ -44,9 +44,7 @@ proc addNoteHandler*(b: TeleBot, c: Command) {.async.} =
 
         await setRedisKey("note-" & noteName & $response.chat.id.int, noteText)
 
-        var msg = newMessage(response.chat.id.int, "Added note " & noteName & "!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "Added note " & noteName & "!", replyToMessageId = response.messageId)
 
 proc getNoteHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
@@ -58,19 +56,18 @@ proc getNoteHandler*(b: TeleBot, c: Command) {.async.} =
     let toGet = response.text.get.split(" ")[1]
     let noteNames = waitFor getRedisList("noteNames" & $response.chat.id.int)
     let noteFwd = waitFor getRedisList("notefwd" & $response.chat.id.int)
+    var msgTxt: string
 
     if toGet in noteNames:
         let noteText = waitFor getRedisKey("note-" & toGet & $response.chat.id.int)
         if toGet in noteFwd:
             discard await b.forwardMessage($response.chat.id, dumpChannel, parseInt(noteText))
         else:
-            var msg = newMessage(response.chat.id.int, noteText)
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = noteText
     else:
-        var msg = newMessage(response.chat.id.int, "Note not found!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        msgTxt = "Note not found!"
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc rmNoteHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
@@ -89,21 +86,17 @@ proc rmNoteHandler*(b: TeleBot, c: Command) {.async.} =
             await rmRedisList("noteNames" & $response.chat.id, torm)
             await clearRedisKey("note-" & torm & $response.chat.id)
 
-            var msg = newMessage(response.chat.id.int, "Removed " & torm)
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            discard await b.sendMessage(response.chat.id, "Removed " & torm, replyToMessageId = response.messageId)
 
 proc savedNotesHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
 
     let noteNames = waitFor getRedisList("noteNames" & $response.chat.id.int)
-    var msg: MessageObject
+    var msgTxt: string
 
     if noteNames == @[]:
-        msg = newMessage(response.chat.id.int, "No notes saved in this chat!")
+        msgTxt = "No notes saved in this chat!"
     else:
-        msg = newMessage(response.chat.id.int, "***Notes in this chat:***\n" & noteNames.join("\n"))
-        msg.parseMode = "markdown"
-    
-    msg.replyToMessageId = response.messageId
-    discard await b.send(msg)
+        msgTxt = "***Notes in this chat:***\n" & noteNames.join("\n")
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)

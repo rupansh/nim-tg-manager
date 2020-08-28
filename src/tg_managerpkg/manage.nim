@@ -4,11 +4,10 @@
 # you may not use this file except in compliance with the License.
 #
 
-import config
 import essentials
 from strutils import split, parseInt
 
-import telebot, asyncdispatch, logging, options
+import telebot, asyncdispatch, options
 
 
 proc promoteHandler*(b: TeleBot, c: Command) {.async.} =
@@ -16,11 +15,9 @@ proc promoteHandler*(b: TeleBot, c: Command) {.async.} =
     let bot = await b.getMe()
     let botChat = await getChatMember(b, $response.chat.id.int, bot.id)
     var promId = 0
-    var failStr = "Reply to a person to promote them!"
+    var msgTxt = "Reply to a person to promote them!"
     if not (await canBotPromote(b, response)):
-        var msg = newMessage(response.chat.id, "I can't promote members!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "I can't promote members!", replyToMessageId = response.messageId)
         return
 
     if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
@@ -31,35 +28,27 @@ proc promoteHandler*(b: TeleBot, c: Command) {.async.} =
                 promId = parseInt(response.text.get.split(" ")[^1])
                 if not (await isUserInChat(b, response.chat.id.int, promId)):
                     promId = 0
-                    failStr = "Invalid user id"
+                    msgTxt = "Invalid user id"
 
-        if promId == 0:
-            var msg = newMessage(response.chat.id, failStr)
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
-        else:
+        if promId != 0:
             discard await promoteChatMember(b, $response.chat.id.int, promId,
             canChangeInfo = botChat.canChangeInfo.get,
             canInviteUsers = botChat.canInviteUsers.get,
             canDeleteMessages = botChat.canDeleteMessages.get,
             canRestrictMembers = botChat.canRestrictMembers.get,
             canPinMessages = botChat.canPinMessages.get)
-            var msg = newMessage(response.chat.id, "Promoted!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = "Promoted!"
     else:
-        var msg = newMessage(response.chat.id, "You aren't adm :^(")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        msgTxt = "You aren't adm :^("
+
+    discard b.sendMessage(response.chat.id, msgTxt, replyToMessageid = response.messageId)
 
 proc demoteHandler*(b: TeleBot, c: Command) {.async.} =
     var response = c.message
     var demId = 0
-    var failStr = "Reply to a user to demote them"
+    var msgTxt = "Reply to a user to demote them"
     if not (await canBotPromote(b, response)):
-        var msg = newMessage(response.chat.id, "I can't demote members!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "I can't demote members!", replyToMessageId = response.messageId)
         return
 
     if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
@@ -70,13 +59,9 @@ proc demoteHandler*(b: TeleBot, c: Command) {.async.} =
                 demId = parseInt(response.text.get.split(" ")[^1])
                 if not (await isUserInChat(b, response.chat.id.int, demId)):
                     demId = 0
-                    failStr = "Invalid user id"
+                    msgTxt = "Invalid user id"
 
-        if demId == 0:
-            var msg = newMessage(response.chat.id, failStr)
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
-        else:
+        if demId != 0:
             try:
                 discard await promoteChatMember(b, $response.chat.id.int, demId,
                     canChangeInfo = false,
@@ -84,78 +69,60 @@ proc demoteHandler*(b: TeleBot, c: Command) {.async.} =
                     canDeleteMessages = false,
                     canRestrictMembers = false,
                     canPinMessages = false)
-                var msg = newMessage(response.chat.id, "Demoted!")
-                msg.replyToMessageId = response.messageId
-                discard await b.send(msg)
+                msgTxt = "Demoted!"
             except IOError:
-                var msg = newMessage(response.chat.id, "Failed to demote!")
-                msg.replyToMessageId = response.messageId
-                discard await b.send(msg)
+                msgTxt = "Failed to demote!"
     else:
-        var msg = newMessage(response.chat.id, "You aren't adm :^(")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        msgTxt = "You aren't adm :^("
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc pinHandler*(b: TeleBot, c: Command) {.async.} =
     var response = c.message
+    var msgTxt: string
     if not (await canBotPin(b, response)):
-        var msg = newMessage(response.chat.id, "I can't Pin Messages!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "I can't Pin Messages!")
         return
 
     if response.replyToMessage.isSome:
         if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             discard await pinChatMessage(b, $response.chat.id.int, response.replyToMessage.get.messageId)
         else:
-            var msg = newMessage(response.chat.id, "You aren't adm :^(")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = "You aren't adm :^("
     else:
-        var msg = newMessage(response.chat.id, "Reply to a message to pin it!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        msgTxt = "Reply to a message to pin it!"
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc unpinHandler*(b: TeleBot, c: Command) {.async.} =
     var response = c.message
     if not (await canBotPin(b, response)):
-        var msg = newMessage(response.chat.id, "I can't unpin Messages!")
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+        discard await b.sendMessage(response.chat.id, "I can't unpin Messages!", replyToMessageId = response.messageId)
         return
 
     if response.text.isSome:
         if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
             discard await unpinChatMessage(b, $response.chat.id.int)
         else:
-            var msg = newMessage(response.chat.id, "You aren't adm :^(")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            discard await b.sendMessage(response.chat.id, "You aren't adm :^(", replyToMessageId = response.messageId)
 
 proc inviteHandler*(b: TeleBot, c: Command) {.async.} =
     var response = c.message
+    var msgTxt: string
 
     if response.text.isSome:
         let chat = await getChat(b, $response.chat.id.int)
         if chat.username.isSome:
-            var msg = newMessage(response.chat.id, "@" & chat.username.get)
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = "@" & chat.username.get
         elif await canBotInvite(b, response):
-            var inviteLink : string
-
             if chat.invitelink.isSome:
-                inviteLink = chat.inviteLink.get
+                msgTxt = chat.inviteLink.get
             else:
-                inviteLink = await exportChatInviteLink(b, $response.chat.id.int)
-
-            var msg = newMessage(response.chat.id, inviteLink)
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+                msgTxt = await exportChatInviteLink(b, $response.chat.id.int)
         else:
-            var msg = newMessage(response.chat.id, "I do not have permissions to make invite links!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = "I do not have permissions to make invite links!"
+
+        discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc adminList*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
@@ -173,19 +140,15 @@ proc adminList*(b: TeleBot, c: Command) {.async.} =
         else:
             text = text & "\n"
 
-    var msg = newMessage(response.chat.id, text)
-    msg.replyToMessageId = response.messageId
-    discard await b.send(msg)
+    discard await b.sendMessage(response.chat.id, text, replyToMessageId = response.messageId)
 
 proc safeHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
-    var failStr: string
+    var msgTxt: string
 
     if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
         if not (await canBotInfo(b, response)):
-            var msg = newMessage(response.chat.id, "I can't change chat permissions!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            discard await b.sendMessage(response.chat.id, "I can't change chat permissions!", replyToMessageid = response.messageId)
             return
 
         var perm: ChatPermissions
@@ -198,12 +161,9 @@ proc safeHandler*(b: TeleBot, c: Command) {.async.} =
                 elif mode == "off":
                     perm = ChatPermissions(canSendMediaMessages: some(true))
                 else:
-                    var msg = newMessage(response.chat.id, "Invalid usage! please use on or off")
-                    msg.replyToMessageId = response.messageId
-                    discard await b.send(msg)
-                    return
-                    
-        discard await setChatPermissions(b, $response.chat.id, perm)
-        var msg = newMessage(response.chat.id, "Safe mode " & mode)
-        msg.replyToMessageId = response.messageId
-        discard await b.send(msg)
+                    msgTxt = "Invalid usage! please use on or off"
+        else: 
+            discard await setChatPermissions(b, $response.chat.id, perm)
+            msgTxt = "Safe mode " & mode
+
+        discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)

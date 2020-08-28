@@ -4,9 +4,9 @@
 # you may not use this file except in compliance with the License.
 #
 
+import logging
 import parsecfg
 from strutils import parseInt, replace, split
-import telebot
 
 
 var infodict* = loadConfig("config.ini")
@@ -25,3 +25,4 @@ var dumpChannel* = infodict.getSectionValue("user", "CHANNEL_USER")
 var redisIp* = infodict.getSectionValue("redis", "REDIS_IP")
 var redisPort* = parseInt(infodict.getSectionValue("redis", "REDIS_PORT"))
 var cmdList*: seq[string]
+var fileLog* = newFileLogger("errors.log", levelThreshold=lvlError)

@@ -9,12 +9,13 @@ from redis import redisNil
 import redishandling
 from strutils import split
 
-import telebot, asyncdispatch, logging, options
+import telebot, asyncdispatch, options
 
 
 proc setRulesHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
     var rules = ""
+    var msgTxt: string
 
     if await isUserAdm(b, response.chat.id.int, response.fromUser.get.id):
         if response.replyToMessage.isSome and response.replyToMessage.get.text.isSome:
@@ -24,16 +25,13 @@ proc setRulesHandler*(b: TeleBot, c: Command) {.async.} =
                 rules = response.text.get.split(" ", 1)[1]
 
         if rules == "":
-            var msg = newMessage(response.chat.id, "Reply to a text message to set it as the rule!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = "Reply to a text message to set it as the rule!"
         else:
-            let rules = response.replyToMessage.get.text.get
             await setRedisKey("rules" & $response.chat.id, rules)
 
-            var msg = newMessage(response.chat.id.int, "Rules set!")
-            msg.replyToMessageId = response.messageId
-            discard await b.send(msg)
+            msgTxt = "Rules set!"
+
+        discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc getRulesHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
@@ -42,7 +40,4 @@ proc getRulesHandler*(b: TeleBot, c: Command) {.async.} =
     if rules == redisNil:
         return
 
-    var msg = newMessage(response.chat.id.int, "***Rules for this chat are:\n***" & rules)
-    msg.replyToMessageId = response.messageId
-    msg.parseMode = "markdown"
-    discard await b.send(msg)
+    discard await b.sendMessage(response.chat.id, "***Rules for this chat are:\n***" & rules, parseMode = "markdown", replyToMessageId = response.messageId)

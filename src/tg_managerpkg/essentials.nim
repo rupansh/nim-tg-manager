@@ -12,36 +12,31 @@ import strutils
 import times
 import config
 
-import telebot, asyncdispatch, logging, options, telebot/utils
+import telebot, asyncdispatch, logging, options, telebot/private/utils
 
 
 # Simplified tg api procs
 template ourOnCommand*(bot: TeleBot, cmd: string, procName) =
     block:
-        proc ourProc2(b: TeleBot, c: Command) {.async.} =
+        proc ourProc2(b: TeleBot, c: Command): Future[bool] {.gcsafe, async.} =
             try:
                 await procName(b, c)
             except:
-                let
-                    e = getCurrentException()
-                    msg = getCurrentExceptionMsg()
-                let sendMsg = "Got Exception With Msg " & msg
-                echo sendMsg
-                discard await b.sendMessage(dumpChannel, sendMsg)
+                let m = getCurrentExceptionMsg()
+                error(m)
+                discard await b.ourSendMessage(dumpChannel, "Got Exception! Please check log!")
 
         bot.onCommand(cmd, ourProc2)
 
 template ourOnUpdate*(bot: TeleBot, procName) =
     block:
-        proc ourProc2(b: TeleBot, u: Update) {.async.} =
+        proc ourProc2(b: TeleBot, u: Update): Future[bool] {.gcsafe, async.} =
             try:
                 await procName(b, u)
             except:
-                let
-                    e = getCurrentException()
-                    msg = getCurrentExceptionMsg()
-                let sendMsg = "Got Exception With Msg " & msg
-                discard await b.sendMessage(dumpChannel, sendMsg)
+                let m = getCurrentExceptionMsg()
+                error(m)
+                discard await b.ourSendMessage(dumpChannel, "Got Exception! Please check log!")
 
         bot.onUpdate(ourProc2)
 
@@ -86,7 +81,7 @@ proc isUserAdm*(b: TeleBot, chat_id: int, user_id: int): Future[bool] {.async.} 
     let user = await getChatMember(b, $chat_id, user_id)
     return (user.status in ["creator", "administrator"]) or (user_id in sudos) or (user_id == parseInt(config.owner))
 
-proc getTime*(b: TeleBot, response: Message): int =
+proc getTime*(b: TeleBot, response: Message): Future[int] {.async.} =
     var toRepl: string
     var timeConst: int
     var extratime: int
@@ -109,9 +104,7 @@ proc getTime*(b: TeleBot, response: Message): int =
         extratime = 0
 
     if extratime <= 0:
-        var msg = newMessage(response.chat.id, "Invalid time")
-        msg.replyToMessageId = response.messageId
-        discard b.send(msg)
+        discard await b.sendMessage(response.chat.id, "Invalid time", replyToMessageId = response.messageId)
         result = 0
     else:
         result = (toUnix(getTime()).int + extratime*timeConst)
@@ -144,7 +137,7 @@ proc sendDocument*(b: TeleBot, chatId: int, document: telebot.File, replyToMessa
     let res = await makeRequest(b, endpoint % b.token, data)
     result = unmarshal(res, Message)
 
-proc sendMessage*(b: TeleBot, chat: string, message: string, parseMode = "", replyToMessageId = 0): Future[Message] {.async.} =
+proc ourSendMessage*(b: TeleBot, chat: string, message: string, parseMode = "", replyToMessageId = 0): Future[Message] {.async.} =
     END_POINT("sendMessage")
     var data = newMultipartData()
     data["chat_id"] = chat
