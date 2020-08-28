@@ -18,12 +18,7 @@ proc asSaveRedis*() {.async.} =
 
 proc appRedisList*(key: string, value: string) {.async.} =
     let redisClient = await openAsync(redisIp, redisPort.Port)
-
-    try:
-        discard await redisClient.rPush(key, value)
-        await asSaveRedis()
-    except ReplyError:
-        discard
+    discard await redisClient.rPush(key, value)
 
 proc getRedisList*(key: string): Future[RedisList] {.async.} =
     let redisClient = await openAsync(redisIp, redisPort.Port)
@@ -32,30 +27,18 @@ proc getRedisList*(key: string): Future[RedisList] {.async.} =
 
 proc rmRedisList*(key: string, value: string) {.async.} =
     let redisClient = await openAsync(redisIp, redisPort.Port)
-
-    try:
-        discard await redisClient.lRem(key, value)
-        await asSaveRedis()
-    except ReplyError:
-        discard
+    discard await redisClient.lRem(key, value)
 
 proc setRedisKey*(key: string, value: string) {.async.} =
     let redisClient = await openAsync(redisIp, redisPort.Port)
-
-    try:
-        await redisClient.setk(key, value)
-        await asSaveRedis()
-    except ReplyError:
-        discard
+    await redisClient.setk(key, value)
 
 proc getRedisKey*(key: string): Future[string] {.async.} =
     let redisClient = await openAsync(redisIp, redisPort.Port)
-
     return await redisClient.get(key)
 
 proc clearRedisKey*(key: string) {.async.} =
     let redisClient = await openAsync(redisIp, redisPort.Port)
-
     discard await redisClient.del(@[key])
 
 proc saveRedis* {.noconv.} =
