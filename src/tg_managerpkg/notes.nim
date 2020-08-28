@@ -62,6 +62,7 @@ proc getNoteHandler*(b: TeleBot, c: Command) {.async.} =
         let noteText = waitFor getRedisKey("note-" & toGet & $response.chat.id.int)
         if toGet in noteFwd:
             discard await b.forwardMessage($response.chat.id, dumpChannel, parseInt(noteText))
+            return
         else:
             msgTxt = noteText
     else:

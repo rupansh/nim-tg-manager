@@ -37,6 +37,7 @@ proc grestrictListener*(b: TeleBot, u: Update) {.async.} =
 
 proc gbanHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message
+    var msgTxt: string
 
     if response.fromUser.get.id in sudos or $response.fromUser.get.id == owner:
         let bot = await b.getMe()
@@ -56,14 +57,16 @@ proc gbanHandler*(b: TeleBot, c: Command) {.async.} =
 
         let gbanList = waitFor getRedisList("gbanned")
 
+        var msgTxt: string
         if not (banid in gbanList):
             await appRedisList("gbanned", banid)
-
-            discard await b.sendMessage(response.chat.id, "Gbanned this tard!", replyToMessageId = response.messageId)
+            msgTxt = "Gbanned this tard!"
         else:
-            discard await b.sendMessage(response.chat.id, "This tard is already gbanned!", replyToMessageId = response.messageId)
+            msgTxt = "This tard is already gbanned!"
     else:
-        discard await b.sendMessage(response.chat.id, "Only sudos can execute this command!", replyToMessageId = response.messageId)
+        msgTxt = "Only sudos can execute this command!"
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc ungbanHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message

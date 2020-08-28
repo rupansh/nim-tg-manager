@@ -24,12 +24,14 @@ proc disableHandler*(b: TeleBot, c: Command) {.async.} =
         return
 
     let disabled = waitFor getRedisList("disabled" & $response.chat.id.int)
+    var msgTxt: string
     if text in cmdList and not (text in disabled):
         await appRedisList("disabled" & $response.chat.id.int, text)
-
-        discard await b.sendMessage(response.chat.id, text & " Disabled", replyToMessageId = response.messageId)
+        msgTxt = text & " Disabled"
     else:
-        discard await b.sendMessage(response.chat.id, text & "Can't disable this command!", replyToMessageId = response.messageId)
+        msgTxt = text & "Can't disable this command!"
+
+    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
 proc enableHandler*(b: TeleBot, c: Command) {.async.} =
     let response = c.message

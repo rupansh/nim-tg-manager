@@ -8,6 +8,7 @@ import essentials
 import htmlparser
 import httpclient
 import imageman
+import math
 import streams
 import strformat
 import strutils
@@ -30,6 +31,8 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
         let bot = await b.getMe()
         var packname = fmt"hqhq{$response.fromUser.get.id}_by_{bot.username.get}"
         var title: string
+        var msgTxt: string
+        var tfailed = false
         var emoji = "🌚"
 
         if response.fromUser.get.username.isSome:
@@ -62,36 +65,38 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
                 if img.width > img.height:
                     ratio = 512/img.width
                     newWidth = 512
-                    newHeight = int(512*ratio)
+                    newHeight = floor(512*ratio).int
                 else:
                     ratio = 512/img.height
-                    newWidth = int(512*ratio)
+                    newWidth = floor(512*ratio).int
                     newHeight = 512
                 img = img.resizedNN(newWidth, newHeight)
             let pngImg = writePNG(img)
             sticker = await uploadStickerFileFromBuf(b, response.fromUser.get.id, cast[seq[byte]](pngImg))
         else:
-            discard await b.sendMessage(response.chat.id, "Reply to a sticker/image to kang it!")
-            return
+            msgTxt = "Reply to a sticker/image to kang it!"
+            tfailed = true
 
-        var client = newAsyncHttpClient()
-        let stickReq = await client.get("https://t.me/addstickers/" & packname)
-        var stickText = innerText(parseHtml(await stickReq.body).findAll("strong")[2])
-        stickText.delete(7, 8) # i still can't figure out UTF8 strings kek
+        if not tfailed:
+            var client = newAsyncHttpClient()
+            let stickReq = await client.get("https://t.me/addstickers/" & packname)
+            var stickText = innerText(parseHtml(await stickReq.body).findAll("strong")[2])
+            stickText.delete(7, 8) # i still can't figure out UTF8 strings kek
 
-        var succs = false
-        if "StickerSet" in stickText:
-            try:
-                succs = await ourCreateNewStickerSet(b, response.fromUser.get.id, packname, title, sticker.fileId, emoji)
-            except IOError as ioerr:
-                if "500" in ioerr.msg:
-                    succs = true
-        else:
-            try:
-                succs = await ourAddStickerToSet(b, response.fromUser.get.id, packname, sticker.fileId, emoji)
-            except IOError as ioerr:
-                if "500" in ioerr.msg:
-                    succs = true
+            var succs = false
+            if "StickerSet" in stickText:
+                try:
+                    succs = await ourCreateNewStickerSet(b, response.fromUser.get.id, packname, title, sticker.fileId, emoji)
+                except IOError as ioerr:
+                    if "500" in ioerr.msg:
+                        succs = true
+            else:
+                try:
+                    succs = await ourAddStickerToSet(b, response.fromUser.get.id, packname, sticker.fileId, emoji)
+                except IOError as ioerr:
+                    if "500" in ioerr.msg:
+                        succs = true
 
-        var msgTxt = if succs: fmt"Added sticker to your [pack](t.me/addstickers/{packname})" else: "Unknown Problem occured!"
+            msgTxt = if succs: fmt"Added sticker to your [pack](t.me/addstickers/{packname})" else: "Unknown Problem occured!"
+
         discard await b.sendMessage(response.chat.id, msgTxt, parseMode = "markdown", replyToMessageId = response.messageId)

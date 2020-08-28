@@ -16,9 +16,7 @@ proc blacklistListener*(b: TeleBot, u: Update) {.async.} =
     if r.isNone:
         return
     let response = r.get
-    if response.text.isNone:
-        return
-    if not (await canBotDelete(b, response)):
+    if response.text.isNone or not (await canBotDelete(b, response)):
         return
 
     if not (await isUserAdm(b, response.chat.id.int, response.fromUser.get.id)):
