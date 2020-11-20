@@ -24,10 +24,12 @@ import tg_managerpkg/[
 from tg_managerpkg/redishandling import saveRedis
 
 import telebot, asyncdispatch, logging, options
+import std/exitprocs
 
 
 proc main() =
     let bot = newTeleBot(apiKey)
+    let dc = dumpChannel
 
     # management
     bot.ourOnCommand("promote", promoteHandler)
@@ -113,7 +115,7 @@ proc main() =
     # file logger
     addHandler(fileLog)
     # save redis server when we are done
-    addQuitProc(saveRedis)
+    addExitProc(saveRedis)
 
     echo "Nim TG Bot is Up!"
 

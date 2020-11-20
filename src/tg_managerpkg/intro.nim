@@ -18,7 +18,7 @@ proc newUsrListener*(b: TeleBot, u: Update) {.async.} =
     if r.isNone:
         return
     let response = r.get
-    if response.newChatMember.isSome:
+    if response.newChatMembers.isSome:
         let welcomeMsg = await getRedisKey("welcome" & $response.chat.id.int)
         if welcomeMsg == redisNil:
             return

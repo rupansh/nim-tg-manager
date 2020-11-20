@@ -24,7 +24,7 @@ template ourOnCommand*(bot: TeleBot, cmd: string, procName) =
             except:
                 let m = getCurrentExceptionMsg()
                 error(m)
-                discard await b.ourSendMessage(dumpChannel, "Got Exception! Please check log!")
+                discard await b.ourSendMessage(dc, "Got Exception! Please check log!")
 
         bot.onCommand(cmd, ourProc2)
 
@@ -36,7 +36,7 @@ template ourOnUpdate*(bot: TeleBot, procName) =
             except:
                 let m = getCurrentExceptionMsg()
                 error(m)
-                discard await b.ourSendMessage(dumpChannel, "Got Exception! Please check log!")
+                discard await b.ourSendMessage(dc, "Got Exception! Please check log!")
 
         bot.onUpdate(ourProc2)
 
