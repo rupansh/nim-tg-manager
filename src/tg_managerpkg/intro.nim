@@ -13,34 +13,34 @@ import strutils
 import telebot, asyncdispatch, options
 
 
-proc newUsrListener*(b: TeleBot, u: Update) {.async.} =
+proc newUsrListener*(b: TgManager, u: Update) {.async.} =
     let r = u.message
     if r.isNone:
         return
     let response = r.get
     if response.newChatMembers.isSome:
-        let welcomeMsg = await getRedisKey("welcome" & $response.chat.id.int)
+        let welcomeMsg = await b.db.getRedisKey("welcome" & $response.chat.id.int)
         if welcomeMsg == redisNil:
             return
         else:
-            discard await b.sendMessage(response.chat.id, welcomeMsg, parseMode = "markdown", replyToMessageId = response.messageId)
+            discard await b.bot.sendMessage(response.chat.id, welcomeMsg, parseMode = "markdown", replyToMessageId = response.messageId)
 
 
-proc startHandler*(b: TeleBot, c: Command) {.async.} =
+proc startHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
     var msgTxt: string
 
-    if (response.fromUser.get.id in sudos) or ($response.fromUser.get.id == owner):
+    if (response.fromUser.get.id in b.config.sudos) or ($response.fromUser.get.id == b.config.owner):
         msgTxt = "***Hoi Master!*** 😁"
     else:
         msgTxt = "***I AM UP!***"
     
-    discard await b.sendMessage(response.chat.id, msgTxt, parseMode = "markdown", replyToMessageId = response.messageId)
+    discard await b.bot.sendMessage(response.chat.id, msgTxt, parseMode = "markdown", replyToMessageId = response.messageId)
 
-proc helpHandler*(b: TeleBot, c: Command) {.async.} =
+proc helpHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
 
-    discard await b.sendMessage(
+    discard await b.bot.sendMessage(
                   response.chat.id,
                   """[Command List](https://rupansh.github.io/nimtg-man.github.io/paperplane/cmds.html)
 [Source Code](https://github.com/rupansh/nim-tg-manager)""",
@@ -48,7 +48,7 @@ proc helpHandler*(b: TeleBot, c: Command) {.async.} =
                   replyToMessageId = response.messageId
     )
 
-proc setwelcomeHandler*(b: TeleBot, c: Command) {.async.} =
+proc setwelcomeHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
     var welComeMsg = ""
 
@@ -68,18 +68,18 @@ proc setwelcomeHandler*(b: TeleBot, c: Command) {.async.} =
         else:
             return
 
-    await setRedisKey("welcome" & $response.chat.id.int, welComeMsg)
-    discard await b.sendMessage(response.chat.id, "Welcome message set!", replyToMessageId = response.messageId)
+    await b.db.setRedisKey("welcome" & $response.chat.id.int, welComeMsg)
+    discard await b.bot.sendMessage(response.chat.id, "Welcome message set!", replyToMessageId = response.messageId)
 
-proc clearWelcomeHandler*(b: TeleBot, c: Command) {.async.} =
+proc clearWelcomeHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
 
     if not (await isUserAdm(b, response.chat.id.int, response.fromUser.get.id)):
         return
 
-    let welcomeMsg = await getRedisKey("welcome" & $response.chat.id.int)
+    let welcomeMsg = await b.db.getRedisKey("welcome" & $response.chat.id.int)
     if welcomeMsg == redisNil:
         return
     else:
-        await clearRedisKey("welcome" & $response.chat.id.int)
-        discard await b.sendMessage(response.chat.id, "Cleared welcome message!", replyToMessageId = response.messageId)
+        await b.db.clearRedisKey("welcome" & $response.chat.id.int)
+        discard await b.bot.sendMessage(response.chat.id, "Cleared welcome message!", replyToMessageId = response.messageId)

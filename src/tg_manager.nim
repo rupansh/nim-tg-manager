@@ -19,107 +19,113 @@ import tg_managerpkg/[
   msgdel,
   notes,
   restrict,
+  redishandling,
   rules
 ]
-from tg_managerpkg/redishandling import saveRedis
-
+import redis
 import telebot, asyncdispatch, logging, options
 import std/exitprocs
+import sugar
 
+proc main() {.async.} =
+    let config = loadConfig()
+    let manager = TgManager(
+      bot: newTeleBot(config.apiKey),
+      config: config,
+      db: await redis.openAsync(config.redisIp, config.redisPort.Port)
+    )
 
-proc main() =
-    let bot = newTeleBot(apiKey)
-    let dc = dumpChannel
+    let dc = config.dumpChannel
 
     # management
-    bot.ourOnCommand("promote", promoteHandler)
-    bot.ourOnCommand("demote", demoteHandler)
-    bot.ourOnCommand("pin", pinHandler)
-    bot.ourOnCommand("unpin", unpinHandler)
-    bot.canDisableCommand("invite", inviteHandler)
-    bot.canDisableCommand("admins", adminList)
-    bot.ourOnCommand("safemode", safeHandler)
+    manager.ourOnCommand("promote", promoteHandler)
+    manager.ourOnCommand("demote", demoteHandler)
+    manager.ourOnCommand("pin", pinHandler)
+    manager.ourOnCommand("unpin", unpinHandler)
+    manager.canDisableCommand("invite", inviteHandler)
+    manager.canDisableCommand("admins", adminList)
+    manager.ourOnCommand("safemode", safeHandler)
 
     # restrictictions
-    bot.ourOnCommand("ban", banHandler)
-    bot.ourOnCommand("tban", tbanHandler)
-    bot.canDisableCommand("banme", banMeHandler)
-    bot.ourOnCommand("unban", unbanHandler)
-    bot.ourOnCommand("kick", kickHandler)
-    bot.canDisableCommand("kickme", kickMeHandler)
-    bot.ourOnCommand("mute", muteHandler)
-    bot.ourOnCommand("tmute", tmuteHandler)
-    bot.ourOnCommand("unmute", unmuteHandler)
+    manager.ourOnCommand("ban", banHandler)
+    manager.ourOnCommand("tban", tbanHandler)
+    manager.canDisableCommand("banme", banMeHandler)
+    manager.ourOnCommand("unban", unbanHandler)
+    manager.ourOnCommand("kick", kickHandler)
+    manager.canDisableCommand("kickme", kickMeHandler)
+    manager.ourOnCommand("mute", muteHandler)
+    manager.ourOnCommand("tmute", tmuteHandler)
+    manager.ourOnCommand("unmute", unmuteHandler)
 
     # information
-    bot.canDisableCommand("id", idHandler)
-    bot.canDisableCommand("info", infoHandler)
-    bot.canDisableCommand("ping", pingHandler)
+    manager.canDisableCommand("id", idHandler)
+    manager.canDisableCommand("info", infoHandler)
+    manager.canDisableCommand("ping", pingHandler)
 
     # msg deleting
-    bot.ourOnCommand("purge", purgeHandler)
-    bot.ourOnCommand("del", delHandler)
+    manager.ourOnCommand("purge", purgeHandler)
+    manager.ourOnCommand("del", delHandler)
 
     # stickers
-    bot.canDisableCommand("getsticker", getStickerHandler)
-    bot.canDisableCommand("kang", kangHandler)
+    manager.canDisableCommand("getsticker", getStickerHandler)
+    manager.canDisableCommand("kang", kangHandler)
 
     # blacklist
-    bot.ourOnUpdate(blacklistListener)
-    bot.ourOnCommand("addblacklist", addBlacklistHandler)
-    bot.ourOnCommand("rmblacklist", rmBlacklistHandler)
-    bot.canDisableCommand("getblacklist", getBlacklistHandler)
+    manager.ourOnUpdate(blacklistListener)
+    manager.ourOnCommand("addblacklist", addBlacklistHandler)
+    manager.ourOnCommand("rmblacklist", rmBlacklistHandler)
+    manager.canDisableCommand("getblacklist", getBlacklistHandler)
 
     # flood
-    bot.ourOnUpdate(floodListener)
-    bot.ourOnCommand("setflood", setFloodHandler)
-    bot.ourOnCommand("clearflood", clearFloodHandler)
-    bot.ourOnCommand("getflood", getFloodHandler)
+    manager.ourOnUpdate(floodListener)
+    manager.ourOnCommand("setflood", setFloodHandler)
+    manager.ourOnCommand("clearflood", clearFloodHandler)
+    manager.ourOnCommand("getflood", getFloodHandler)
 
     # notes
-    bot.ourOnCommand("save", addNoteHandler)
-    bot.canDisableCommand("get", getNoteHandler)
-    bot.ourOnCommand("clear", rmNoteHandler)
-    bot.canDisableCommand("saved", savedNotesHandler)
+    manager.ourOnCommand("save", addNoteHandler)
+    manager.canDisableCommand("get", getNoteHandler)
+    manager.ourOnCommand("clear", rmNoteHandler)
+    manager.canDisableCommand("saved", savedNotesHandler)
 
     # global restrictions
-    bot.ourOnUpdate(grestrictListener)
-    bot.ourOnCommand("gban", gbanHandler)
-    bot.ourOnCommand("ungban", ungbanHandler)
-    bot.ourOnCommand("gmute", gmuteHandler)
-    bot.ourOnCommand("ungmute", ungmuteHandler)
+    manager.ourOnUpdate(grestrictListener)
+    manager.ourOnCommand("gban", gbanHandler)
+    manager.ourOnCommand("ungban", ungbanHandler)
+    manager.ourOnCommand("gmute", gmuteHandler)
+    manager.ourOnCommand("ungmute", ungmuteHandler)
 
     # rules
-    bot.ourOnCommand("setrules", setRulesHandler)
-    bot.canDisableCommand("rules", getRulesHandler)
+    manager.ourOnCommand("setrules", setRulesHandler)
+    manager.canDisableCommand("rules", getRulesHandler)
 
     # intro
-    bot.canDisableCommand("start", startHandler)
-    bot.canDisableCommand("help", helpHandler)
-    bot.ourOnUpdate(newUsrListener)
-    bot.ourOnCommand("setwelcome", setwelcomeHandler)
-    bot.ourOnCommand("clearwelcome", clearWelcomeHandler)
+    manager.canDisableCommand("start", startHandler)
+    manager.canDisableCommand("help", helpHandler)
+    manager.ourOnUpdate(newUsrListener)
+    manager.ourOnCommand("setwelcome", setwelcomeHandler)
+    manager.ourOnCommand("clearwelcome", clearWelcomeHandler)
 
     # memes
-    bot.canDisableCommand("owo", owoHandler)
-    bot.canDisableCommand("stretch", stretchHandler)
-    bot.canDisableCommand("vapor", vaporHandler)
-    bot.canDisableCommand("mock", mockHandler)
-    bot.canDisableCommand("zalgo", zalgoHandler)
+    manager.canDisableCommand("owo", owoHandler)
+    manager.canDisableCommand("stretch", stretchHandler)
+    manager.canDisableCommand("vapor", vaporHandler)
+    manager.canDisableCommand("mock", mockHandler)
+    manager.canDisableCommand("zalgo", zalgoHandler)
 
     # disable
-    bot.ourOnCommand("disable", disableHandler)
-    bot.ourOnCommand("enable", enableHandler)
-    bot.ourOnCommand("getdisabled", getDisabledHandler)
+    manager.ourOnCommand("disable", disableHandler)
+    manager.ourOnCommand("enable", enableHandler)
+    manager.ourOnCommand("getdisabled", getDisabledHandler)
 
     # file logger
-    addHandler(fileLog)
+    addHandler(config.fileLog)
     # save redis server when we are done
-    addExitProc(saveRedis)
+    addExitProc(() => waitFor manager.db.asSaveRedis())
 
     echo "Nim TG Bot is Up!"
 
-    bot.poll(timeout=100)
+    await manager.bot.pollAsync(timeout=300)
 
 when isMainModule:
-    main()
+    waitFor main()

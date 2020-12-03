@@ -4,6 +4,7 @@
 # you may not use this file except in compliance with the License.
 #
 
+import essentials
 import random
 import regex
 from strutils import replace, repeat
@@ -16,7 +17,7 @@ const ZALG_BOT = ["̖"," ̗"," ̘"," ̙"," ̜"," ̝"," ̞"," ̟"," ̠"," ̤"," �
 const ZALG_TOP = [" ̍"," ̎"," ̄"," ̅"," ̿"," ̑"," ̆"," ̐"," ͒"," ͗"," ͑"," ̇"," ̈"," ̊"," ͂"," ̓"," ̈́"," ͊"," ͋"," ͌"," ̃"," ̂"," ̌"," ͐"," ́"," ̋"," ̏"," ̽"," ̉"," ͣ"," ͤ"," ͥ"," ͦ"," ͧ"," ͨ"," ͩ"," ͪ"," ͫ"," ͬ"," ͭ"," ͮ"," ͯ"," ̾"," ͛"," ͆"," ̚",]
 const ZALG_MID = [" ̕"," ̛"," ̀"," ́"," ͘"," ̡"," ̢"," ̧"," ̨"," ̴"," ̵"," ̶"," ͜"," ͝"," ͞"," ͟"," ͠"," ͢"," ̸"," ̷"," ͡",]
 
-proc owoHandler*(b: TeleBot, c: Command) {.async.} =
+proc owoHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
 
     var replyText: string
@@ -41,9 +42,9 @@ proc owoHandler*(b: TeleBot, c: Command) {.async.} =
         if validateUTF8(replyText) != -1:
             replyText = "Invalid text!"
 
-    discard await b.sendMessage(response.chat.id, replyText, replyToMessageid = response.messageId)
+    discard await b.bot.sendMessage(response.chat.id, replyText, replyToMessageid = response.messageId)
 
-proc stretchHandler*(b: TeleBot, c: Command) {.async.} =
+proc stretchHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
     var replyText: string
     if response.replyToMessage.isSome and response.replyToMessage.get.text.isSome:
@@ -54,9 +55,9 @@ proc stretchHandler*(b: TeleBot, c: Command) {.async.} =
     else:
         replyText = "You must reply to a text message!"
 
-    discard await b.sendMessage(response.chat.id, replyText, replyToMessageId = response.messageId)
+    discard await b.bot.sendMessage(response.chat.id, replyText, replyToMessageId = response.messageId)
 
-proc vaporHandler*(b: TeleBot, c: Command) {.async.} =
+proc vaporHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
     var replyText: string
 
@@ -74,9 +75,9 @@ proc vaporHandler*(b: TeleBot, c: Command) {.async.} =
     else:
         replyText = "You must reply to a text message!"
 
-    discard await b.sendMessage(response.chat.id, replyText, replyToMessageId = response.messageId)
+    discard await b.bot.sendMessage(response.chat.id, replyText, replyToMessageId = response.messageId)
 
-proc mockHandler*(b: TeleBot, c: Command) {.async.} =
+proc mockHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
     var replyText = ""
     if response.replyToMessage.isSome and response.replyToMessage.get.text.isSome:
@@ -94,9 +95,9 @@ proc mockHandler*(b: TeleBot, c: Command) {.async.} =
     else:
         replyText = "You must reply to a text message!"
     
-    discard await b.sendMessage(response.chat.id, replyText, replyToMessageId = response.messageId)
+    discard await b.bot.sendMessage(response.chat.id, replyText, replyToMessageId = response.messageId)
 
-proc zalgoHandler*(b: TeleBot, c: Command) {.async.} =
+proc zalgoHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
     var replyText = ""
     if response.replyToMessage.isSome and response.replyToMessage.get.text.isSome:
@@ -122,5 +123,5 @@ proc zalgoHandler*(b: TeleBot, c: Command) {.async.} =
     else:
         replyText = "Reply to a text message!"
 
-    discard await b.sendMessage(response.chat.id, replyText, replyToMessageId = response.messageId)
+    discard await b.bot.sendMessage(response.chat.id, replyText, replyToMessageId = response.messageId)
                 

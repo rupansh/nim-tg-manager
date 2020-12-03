@@ -13,7 +13,7 @@ import times
 import telebot, asyncdispatch, options
 
 
-proc grestrictListener*(b: TeleBot, u: Update) {.async.} =
+proc grestrictListener*(b: TgManager, u: Update) {.async.} =
     let res = u.message
     var response: Message
     if res.isSome:
@@ -24,23 +24,23 @@ proc grestrictListener*(b: TeleBot, u: Update) {.async.} =
     if not (await canBotRestrict(b, response)):
         return
 
-    let gbanList = waitFor getRedisList("gbanned")
+    let gbanList = await b.db.getRedisList("gbanned")
     if $response.fromUser.get.id in gbanList:
-        discard await kickChatMember(b, $response.chat.id, response.fromUser.get.id, (toUnix(getTime()) - 31).int)
-        await appRedisList("gban-groups-" & $response.fromUser.get.id, $response.chat.id)
+        discard await kickChatMember(b.bot, $response.chat.id, response.fromUser.get.id, (toUnix(getTime()) - 31).int)
+        await b.db.appRedisList("gban-groups-" & $response.fromUser.get.id, $response.chat.id)
 
-    let gmuteList = waitFor getRedisList("gmuted")
+    let gmuteList = await b.db.getRedisList("gmuted")
     if $response.fromUser.get.id in gmuteList:
         let perms = ChatPermissions(canSendMessages : some(false))
-        discard await restrictChatMember(b, $response.chat.id, response.fromUser.get.id, perms)
-        await appRedisList("gmute-groups-" & $response.fromUser.get.id, $response.chat.id)
+        discard await restrictChatMember(b.bot, $response.chat.id, response.fromUser.get.id, perms)
+        await b.db.appRedisList("gmute-groups-" & $response.fromUser.get.id, $response.chat.id)
 
-proc gbanHandler*(b: TeleBot, c: Command) {.async.} =
+proc gbanHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
     var msgTxt: string
 
-    if response.fromUser.get.id in sudos or $response.fromUser.get.id == owner:
-        let bot = await b.getMe()
+    if response.fromUser.get.id in b.config.sudos or $response.fromUser.get.id == b.config.owner:
+        let bot = await b.bot.getMe()
         var banid: string
 
         if response.replyToMessage.isSome:
@@ -52,27 +52,27 @@ proc gbanHandler*(b: TeleBot, c: Command) {.async.} =
                 return
         else:
             return
-        if banid == $bot.id or parseInt(banid) in sudos or banid == owner:
+        if banid == $bot.id or parseInt(banid) in b.config.sudos or banid == b.config.owner:
             return
 
-        let gbanList = waitFor getRedisList("gbanned")
+        let gbanList = await b.db.getRedisList("gbanned")
 
         var msgTxt: string
         if not (banid in gbanList):
-            await appRedisList("gbanned", banid)
+            await b.db.appRedisList("gbanned", banid)
             msgTxt = "Gbanned this tard!"
         else:
             msgTxt = "This tard is already gbanned!"
     else:
         msgTxt = "Only sudos can execute this command!"
 
-    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
+    discard await b.bot.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
-proc ungbanHandler*(b: TeleBot, c: Command) {.async.} =
+proc ungbanHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
     var msgTxt: string
 
-    if response.fromUser.get.id in sudos or $response.fromUser.get.id == owner:
+    if response.fromUser.get.id in b.config.sudos or $response.fromUser.get.id == b.config.owner:
         var banid: string
 
         if response.replyToMessage.isSome:
@@ -85,29 +85,29 @@ proc ungbanHandler*(b: TeleBot, c: Command) {.async.} =
         else:
             return
 
-        let gbanList = waitFor getRedisList("gbanned")
+        let gbanList = await b.db.getRedisList("gbanned")
 
         if banid in gbanList:
-            await rmRedisList("gbanned", banid)
-            let gbannedGroups = waitFor getRedisList("gban-groups-" & banid)
+            await b.db.rmRedisList("gbanned", banid)
+            let gbannedGroups = await b.db.getRedisList("gban-groups-" & banid)
             if not (gbannedGroups == @[]):
                 for group in gbannedGroups:
                     if await canBotRestrict2(b, group):
-                        discard await unbanChatMember(b, group, parseInt(banid))
+                        discard await unbanChatMember(b.bot, group, parseInt(banid))
             msgTxt = "User unGbanned"
         else:
             msgTxt = "Only sudos can execute this command!"
     else:
         msgTxt = "Only sudos can execute this command!"
 
-    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
+    discard await b.bot.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
-proc gmuteHandler*(b: TeleBot, c: Command) {.async.} =
+proc gmuteHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
     var msgTxt: string
 
-    if response.fromUser.get.id in sudos or $response.fromUser.get.id == owner:
-        let bot = await b.getMe()
+    if response.fromUser.get.id in b.config.sudos or $response.fromUser.get.id == b.config.owner:
+        let bot = await b.bot.getMe()
         var banid: string
 
         if response.replyToMessage.isSome:
@@ -119,26 +119,26 @@ proc gmuteHandler*(b: TeleBot, c: Command) {.async.} =
                 return
         else:
             return
-        if banid == $bot.id or parseInt(banid) in sudos or banid == owner:
+        if banid == $bot.id or parseInt(banid) in b.config.sudos or banid == b.config.owner:
             return
 
-        let gbanList = waitFor getRedisList("gmuted")
+        let gbanList = await b.db.getRedisList("gmuted")
 
         if not (banid in gbanList):
-            await appRedisList("gmuted", banid)
+            await b.db.appRedisList("gmuted", banid)
             msgTxt = "Gmuted this tard!"
         else:
             msgTxt = "This tard is already gmuted!"
     else:
         msgTxt = "Only sudos can execute this command!"
 
-    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
+    discard await b.bot.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
 
-proc ungmuteHandler*(b: TeleBot, c: Command) {.async.} =
+proc ungmuteHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
     var msgTxt: string
 
-    if response.fromUser.get.id in sudos or $response.fromUser.get.id == owner:
+    if response.fromUser.get.id in b.config.sudos or $response.fromUser.get.id == b.config.owner:
         var banid: string
 
         if response.replyToMessage.isSome:
@@ -151,11 +151,11 @@ proc ungmuteHandler*(b: TeleBot, c: Command) {.async.} =
         else:
             return
 
-        let gbanList = waitFor getRedisList("gmuted")
+        let gbanList = await b.db.getRedisList("gmuted")
 
         if banid in gbanList:
-            await rmRedisList("gmuted", banid)
-            let gmutedGroups = waitFor getRedisList("gmute-groups-" & banid)
+            await b.db.rmRedisList("gmuted", banid)
+            let gmutedGroups = await b.db.getRedisList("gmute-groups-" & banid)
             if not (gmutedGroups == @[]):
                 for group in gmutedGroups:
                     if await canBotRestrict2(b, group):
@@ -163,7 +163,7 @@ proc ungmuteHandler*(b: TeleBot, c: Command) {.async.} =
                         canSendMediaMessages: some(true),
                         canSendOtherMessages: some(true),
                         canAddWebPagePreviews: some(true))
-                        discard await restrictChatMember(b, group, parseInt(banid), perms)
+                        discard await restrictChatMember(b.bot, group, parseInt(banid), perms)
 
             msgTxt = "User unGmuted!"
         else:
@@ -171,4 +171,4 @@ proc ungmuteHandler*(b: TeleBot, c: Command) {.async.} =
     else:
         msgTxt = "Only sudos can execute this command!"
 
-    discard await b.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)
+    discard await b.bot.sendMessage(response.chat.id, msgTxt, replyToMessageId = response.messageId)

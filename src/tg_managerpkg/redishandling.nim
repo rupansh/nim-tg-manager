@@ -4,43 +4,30 @@
 # you may not use this file except in compliance with the License.
 #
 
-import config
 import redis, asyncdispatch
 
 
-proc asSaveRedis*() {.async.} =
-    let redisClient = await openAsync(redisIp, redisPort.Port)
-
+proc asSaveRedis*(db: AsyncRedis) {.async.} =
     try:
-        await redisClient.bgsave()
+        await db.bgsave()
     except RedisError: # bg save in progress
         discard
 
-proc appRedisList*(key: string, value: string) {.async.} =
-    let redisClient = await openAsync(redisIp, redisPort.Port)
-    discard await redisClient.rPush(key, value)
+proc appRedisList*(db: AsyncRedis, key: string, value: string) {.async.} =
+    discard await db.rPush(key, value)
 
-proc getRedisList*(key: string): Future[RedisList] {.async.} =
-    let redisClient = await openAsync(redisIp, redisPort.Port)
+proc getRedisList*(db: AsyncRedis, key: string): Future[RedisList] {.async.} =
+    {.gcsafe.}: # TODO: Investigate why the compiler is crying here
+        return await db.lRange(key, 0, -1)
 
-    return await redisClient.lRange(key, 0, -1)
+proc rmRedisList*(db: AsyncRedis, key: string, value: string) {.async.} =
+    discard await db.lRem(key, value)
 
-proc rmRedisList*(key: string, value: string) {.async.} =
-    let redisClient = await openAsync(redisIp, redisPort.Port)
-    discard await redisClient.lRem(key, value)
+proc setRedisKey*(db: AsyncRedis, key: string, value: string) {.async.} =
+    await db.setk(key, value)
 
-proc setRedisKey*(key: string, value: string) {.async.} =
-    let redisClient = await openAsync(redisIp, redisPort.Port)
-    await redisClient.setk(key, value)
+proc getRedisKey*(db: AsyncRedis, key: string): Future[string] {.async.} =
+    return await db.get(key)
 
-proc getRedisKey*(key: string): Future[string] {.async.} =
-    let redisClient = await openAsync(redisIp, redisPort.Port)
-    return await redisClient.get(key)
-
-proc clearRedisKey*(key: string) {.async.} =
-    let redisClient = await openAsync(redisIp, redisPort.Port)
-    discard await redisClient.del(@[key])
-
-proc saveRedis* {.noconv.} =
-    let redisClient = open(redisIp, redisPort.Port)
-    redisClient.bgsave()
+proc clearRedisKey*(db: AsyncRedis, key: string) {.async.} =
+    discard await db.del(@[key])

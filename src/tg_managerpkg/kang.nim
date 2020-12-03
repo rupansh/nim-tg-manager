@@ -17,18 +17,18 @@ import xmltree
 import telebot, asyncdispatch, options, telebot/private/utils
 
 
-proc getStickerHandler*(b: TeleBot, c: Command) {.async.} =
+proc getStickerHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
     if response.replyToMessage.isSome and response.replyToMessage.get.sticker.isSome:
-        let sticker = await getFile(b, response.replyToMessage.get.sticker.get.fileId)
+        let sticker = await getFile(b.bot, response.replyToMessage.get.sticker.get.fileId)
         discard await sendDocument(b, response.chat.id.int, sticker, response.messageId, forceDoc = true, "sticker.png")
     else:
-        discard await b.sendMessage(response.chat.id, "Reply to a sticker to get it!", replyToMessageId = response.messageId)
+        discard await b.bot.sendMessage(response.chat.id, "Reply to a sticker to get it!", replyToMessageId = response.messageId)
 
-proc kangHandler*(b: TeleBot, c: Command) {.async.} =
+proc kangHandler*(b: TgManager, c: Command) {.async.} =
     let response = c.message
     if response.replyToMessage.isSome:
-        let bot = await b.getMe()
+        let bot = await b.bot.getMe()
         var packname = fmt"hqhq{$response.fromUser.get.id}_by_{bot.username.get}"
         var title: string
         var msgTxt: string
@@ -53,8 +53,8 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
                 emoji = response.replyToMessage.get.sticker.get.emoji.get
             sticker = await ourUploadStickerFile(b, response.fromUser.get.id, response.replyToMessage.get.sticker.get.fileId) # needed to fool retarded api
         elif response.replyToMessage.get.photo.isSome:
-            let photoFile = await getFile(b, response.replyToMessage.get.photo.get[^1].fileId)
-            let photoUrl = FILE_URL % @[b.token, photoFile.filePath.get]
+            let photoFile = await getFile(b.bot, response.replyToMessage.get.photo.get[^1].fileId)
+            let photoUrl = FILE_URL % @[b.bot.token, photoFile.filePath.get]
             let buf = saveBuf(photoUrl)[0].readAll
             let buf2 = cast[seq[char]](buf)
             var img = readImage[ColorRGBAU](buf2)
@@ -99,4 +99,4 @@ proc kangHandler*(b: TeleBot, c: Command) {.async.} =
 
             msgTxt = if succs: fmt"Added sticker to your [pack](t.me/addstickers/{packname})" else: "Unknown Problem occured!"
 
-        discard await b.sendMessage(response.chat.id, msgTxt, parseMode = "markdown", replyToMessageId = response.messageId)
+        discard await b.bot.sendMessage(response.chat.id, msgTxt, parseMode = "markdown", replyToMessageId = response.messageId)
