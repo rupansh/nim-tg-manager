@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 #
 
-import net
+import asyncnet
 import times
 import config
 import essentials
@@ -56,10 +56,10 @@ proc infoHandler*(b: TgManager, c: Command) {.async.} =
     discard b.bot.sendMessage(response.chat.id, txt, parseMode= "markdown", replyToMessageId = response.messageId)
 
 proc pingHandler*(b: TgManager, c: Command) {.async.} =
-    let socket = newSocket()
-    let time = cpuTime()
-    socket.connect("api.telegram.org", Port(80))
-    let avgTime = ((cpuTime() - time)*1000).int
+    let socket = newAsyncSocket()
+    let time = now()
+    await socket.connect("api.telegram.org", Port(80))
+    let avgTime = (now() - time).inMilliseconds()
 
     let response = c.message
     discard b.bot.sendMessage(response.chat.id, "***PONG!***\nPing: " & $avgTime & "ms", parseMode = "markdown", replyToMessageId = response.messageId)
